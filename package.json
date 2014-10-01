@@ -1,0 +1,23 @@
+{
+  "name": "web-api",
+  "version": "0.1.0",
+  "description": "=======",
+  "main": "app.js",
+  "scripts": {
+    "test": "grunt test"
+  },
+  "dependencies": {
+    "restify": "2.8.x",
+    "mongoose": "3.8.x"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/interactive-events/web-api.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/interactive-events/web-api/issues"
+  },
+  "homepage": "https://github.com/interactive-events/web-api"
+}
