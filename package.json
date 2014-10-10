@@ -1,23 +1,37 @@
 {
-  "name": "web-api",
-  "version": "0.1.0",
-  "description": "=======",
+  "name": "interactive-events-api",
+  "version": "0.0.1",
   "main": "app.js",
-  "scripts": {
-    "test": "grunt test"
+  "description": "The API.",
+  "bugs": "https://github.com/interactive-events/interactive-events-api/issues",
+  "author": {
+    "name": "Interactive Events Group",
+    "email": ""
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/interactive-events/interactive-events-api"
+  },
+  "license": "MIT",
   "dependencies": {
     "restify": "2.8.x",
     "mongoose": "3.8.x"
   },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/interactive-events/web-api.git"
+  "devDependencies": {
+    "grunt-contrib-jshint": "^0.10.0",
+    "grunt-contrib-nodeunit": "^0.3.3",
+    "grunt-contrib-watch": "^0.6.1",
+    "load-grunt-tasks": "^0.4.0",
+    "time-grunt": "^0.3.1",
+    "grunt-mocha-cli": "^1.9.0",
+    "jshint-stylish": "^0.2.0"
   },
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/interactive-events/web-api/issues"
+  "scripts": {
+    "start": "node app.js",
+    "test": "grunt"
   },
-  "homepage": "https://github.com/interactive-events/web-api"
+  "bin": {
+    "interactive-events-api": "cli.js"
+  },
+  "preferGlobal": "true"
 }
