@@ -1,7 +1,17 @@
 language: node_js
 node_js:
-  - '0.10'
-  - '0.8'
+- '0.10'
 before_script:
-  - npm install -g grunt-cli
-  - npm test
+- npm install -g grunt-cli
+- npm test
+deploy:
+  provider: elasticbeanstalk
+  edge: true
+  access_key_id: AKIAJR5G53S6P2HFMPXA
+  secret_access_key:
+    secure: V7ZL4Jk4VVcX8heqhyrTo8qvo0VtLDuVyb7OQ7WV/EPY0KpzyItzElSBIS4OieyHsZZT7k9blAj3JczBWXX3XctCzFOIZChF48zufcUcr8NLncuh/Moz/QL40yzXVlKBgKYoh+o+1/9t55y/JfF6JrHpWtGRFw+S1oADrmaXKK4=
+  app: Interactive Events API
+  env: Production
+  region: eu-west-1
+  on:
+    branch: release
