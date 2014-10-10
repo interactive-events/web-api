@@ -20,7 +20,7 @@ exports.StartServer = function() {
     });
 
     server.listen(8081, function() {
-        console.log('%s listening at %s', server.name, server.url);
+        console.log('%s now listening at %s', server.name, server.url);
     });
 
     function listAllRoutes(server) {
