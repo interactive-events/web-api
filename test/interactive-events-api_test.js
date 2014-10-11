@@ -5,8 +5,9 @@ var assert = require('assert');
 var restify = require('restify');
 
 // init the test client
+var port = process.env.PORT || 8000;
 var client = restify.createJsonClient({
-	url: 'http://127.0.0.1:8081',
+	url: 'http://127.0.0.1:' + port,
 	version: '*'
 });
 
