@@ -5,7 +5,7 @@ var assert = require('assert');
 var restify = require('restify');
 
 // init the test client
-var port = process.env.PORT || 8000;
+var port = process.env.PORT || 8081;
 var client = restify.createJsonClient({
 	url: 'http://127.0.0.1:' + port,
 	version: '*'
@@ -14,7 +14,7 @@ var client = restify.createJsonClient({
 // Container for all tests
 describe('API tests', function() {
 	before(function(done) {
-		require('../app').StartServer();
+		require('../app').startServer();
 		done();
 	});
 
