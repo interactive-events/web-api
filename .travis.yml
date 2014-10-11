@@ -1,9 +1,6 @@
 language: node_js
 node_js:
 - '0.10'
-before_install:
-- gem install specific_install
-- gem specific_install https://github.com/travis-ci/dpl.git
 before_script:
 - npm install -g grunt-cli
 script: npm test
@@ -16,6 +13,7 @@ deploy:
   app: Interactive Events API
   env: Production
   region: eu-west-1
+  skip_cleanup: true
   bucket_name: interactive-events-api-deploy
   on:
     branch: release
