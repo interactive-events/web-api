@@ -13,6 +13,6 @@ deploy:
   app: Interactive Events API
   env: Production
   region: eu-west-1
-  bucket: interactive-events-api-deploy
+  bucket_name: interactive-events-api-deploy
   on:
     branch: release
