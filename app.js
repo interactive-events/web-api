@@ -1,4 +1,4 @@
-function startServer() {
+function startServer(port) {
     var restify = require('restify');
 
     var server = restify.createServer({
@@ -19,7 +19,7 @@ function startServer() {
         return next();
     });
 
-    server.listen(process.env.PORT || 8081, function() {
+    server.listen(process.env.PORT || port, function() {
         console.log('%s: now listening at %s', server.name, server.url);
     });
 
@@ -37,4 +37,4 @@ function startServer() {
 }
 
 exports.startServer = startServer;
-startServer();
+startServer(8000);
