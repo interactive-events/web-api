@@ -15,16 +15,21 @@
   "license": "MIT",
   "dependencies": {
     "restify": "2.8.x",
-    "mongoose": "3.8.x"
+    "mongoose": "3.8.x",
+    "passport": "~0.1.12",
+    "passport-local": "0.1.x",
+    "passport-http": "0.2.x",
+    "passport-http-bearer": "0.2.x",
+    "passport-oauth2-client-password": "0.1.x"
   },
   "devDependencies": {
     "grunt-contrib-jshint": "^0.10.0",
     "grunt-contrib-nodeunit": "^0.3.3",
     "grunt-contrib-watch": "^0.6.1",
-    "load-grunt-tasks": "^0.4.0",
-    "time-grunt": "^0.3.1",
     "grunt-mocha-cli": "^1.9.0",
-    "jshint-stylish": "^0.2.0"
+    "jshint-stylish": "^0.2.0",
+    "load-grunt-tasks": "^0.4.0",
+    "time-grunt": "^0.3.1"
   },
   "scripts": {
     "start": "node app.js",
