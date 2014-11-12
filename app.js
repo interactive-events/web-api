@@ -15,6 +15,13 @@ function startServer(port) {
     server.use(restify.bodyParser());
     server.use(passport.initialize());
 
+    server.use(function crossOrigin(req,res,next){
+        res.header("Access-Control-Allow-Origin", "*");
+        res.header("Access-Control-Allow-Headers", "X-Requested-With");
+        return next();
+        }
+    );
+
     server.get('/', function(req, res, next) {
         res.send(listAllRoutes(server));
         return next();
