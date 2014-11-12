@@ -14,13 +14,14 @@
   },
   "license": "MIT",
   "dependencies": {
-    "restify": "2.8.x",
     "mongoose": "3.8.x",
+    "oauth2orize": "^1.0.1",
     "passport": "~0.1.12",
-    "passport-local": "0.1.x",
     "passport-http": "0.2.x",
     "passport-http-bearer": "0.2.x",
-    "passport-oauth2-client-password": "0.1.x"
+    "passport-local": "0.1.x",
+    "passport-oauth2-client-password": "0.1.x",
+    "restify": "2.8.x"
   },
   "devDependencies": {
     "grunt-contrib-jshint": "^0.10.0",
