@@ -8,7 +8,7 @@ var oauth2orize = require('oauth2orize')
 // create OAuth 2.0 server
 var server = oauth2orize.createServer();
 
-//Resource owner password
+// Resource owner password
 server.exchange(oauth2orize.exchange.password(function (client, username, password, scope, done) {
   db.findByUsername(username, function (err, user) {
         if (err) return done(err);
@@ -33,8 +33,9 @@ server.exchange(oauth2orize.exchange.password(function (client, username, passwo
     });
 }));
 
-//Refresh Token
+// Refresh Token
 server.exchange(oauth2orize.exchange.refreshToken(function (client, refreshToken, scope, done) {
+    console.log("If yo see this: TELL ME OMG!");
     var refreshTokenHash = crypto.createHash('sha1').update(refreshToken).digest('hex');
 
     db.findRefreshToken(refreshTokenHash, function (err, token) {
