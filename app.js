@@ -1,6 +1,7 @@
 function startServer(port) {
     var restify = require('restify');
     var passport = require('passport');
+    var socketio = require('socket.io');
     //var login = require('connect-ensure-login')
 
     require('./auth');
@@ -14,6 +15,10 @@ function startServer(port) {
     server.use(restify.queryParser());
     server.use(restify.bodyParser());
     server.use(passport.initialize());
+    
+    var io = socketio.listen(server);   
+    exports.io = io;
+    var modules = require('./event_modules')
 
     server.get('/', function(req, res, next) {
         res.send(listAllRoutes(server));
@@ -40,6 +45,14 @@ function startServer(port) {
         res.send("You are logged in!");
     });
     
+    /* Socket.io */
+
+    server.get('/event/:eventId/module/:moduleId/start', function(req, res, next) {
+        if(req.params.eventId == 1 && req.params.moduleId == 1) {
+            return modules.poll.start(req, res, next, "/events/"+req.params.eventId+"/module/"+req.params.moduleId+"/");
+        }
+        return next();
+    });
 
     server.listen(process.env.PORT || port, function() {
         console.log('%s: now listening at %s', server.name, server.url);

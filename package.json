@@ -23,7 +23,8 @@
     "passport-http-bearer": "0.2.x",
     "passport-local": "0.1.x",
     "passport-oauth2-client-password": "0.1.x",
-    "restify": "2.8.x"
+    "restify": "git://github.com/OiNutter/node-restify",
+    "socket.io": "^1.2.0"
   },
   "devDependencies": {
     "grunt-contrib-jshint": "^0.10.0",
