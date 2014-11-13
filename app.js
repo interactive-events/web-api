@@ -75,9 +75,9 @@ function startServer(port) {
     
     /* Socket.io */
 
-    server.get('/event/:eventId/module/:moduleId/start', function(req, res, next) {
+    server.get('/events/:eventId/modules/:moduleId/start', function(req, res, next) {
         if(req.params.eventId == 1 && req.params.moduleId == 1) {
-            return modules.poll.start(req, res, next, "/events/"+req.params.eventId+"/module/"+req.params.moduleId+"/");
+            return modules.poll.start(req, res, next, "/events/"+req.params.eventId+"/modules/"+req.params.moduleId+"/");
         }
         return next();
     });
