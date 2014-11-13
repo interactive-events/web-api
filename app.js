@@ -15,6 +15,34 @@ function startServer(port) {
     server.use(restify.bodyParser());
     server.use(passport.initialize());
 
+    // Set cross origin headers for Ajax calls
+    // TODO Maybe add specific Origin, such as the Web app URL
+    server.use(
+    function crossOrigin(req,res,next){
+        res.header("Access-Control-Allow-Origin", "*");
+        res.header("Access-Control-Allow-Headers", "X-Requested-With");
+        return next();
+    });
+
+    // Handles OPTIONS requests that are sent by browsers before
+    // Ajax requests.
+    function unknownMethodHandler(req, res) {
+    if (req.method.toLowerCase() === 'options') {
+        if (res.methods.indexOf('OPTIONS') === -1) {res.methods.push('OPTIONS');}
+            res.header('Access-Control-Allow-Origin', "*");
+            return res.send(204);
+    }
+    else
+        return res.send(new restify.MethodNotAllowedError());
+    }
+
+    server.on('MethodNotAllowed', unknownMethodHandler);
+
+    server.pre(function (request, response, next) {
+        request.log.info({ req: request }, 'REQUEST');
+        next();
+    });
+
     server.get('/', function(req, res, next) {
         res.send(listAllRoutes(server));
         return next();
