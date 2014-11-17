@@ -1,5 +1,5 @@
 
-var io = require("../app").io;
+var io = require("../server").io;
 
 // TODO: migrate to database. Needed if more than one node machine will ever run. 
 var namespaces = {};

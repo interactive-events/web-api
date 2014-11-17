@@ -13,7 +13,7 @@ var client = restify.createJsonClient({
 // Container for all tests
 describe('API tests', function() {
 	before(function(done) {
-		require('../app').startServer(8081);
+		require('../server').startServer(8081);
 		done();
 	});
 

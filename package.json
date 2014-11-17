@@ -1,7 +1,7 @@
 {
   "name": "interactive-events-api",
   "version": "0.0.1",
-  "main": "app.js",
+  "main": "server.js",
   "description": "The API.",
   "bugs": "https://github.com/interactive-events/interactive-events-api/issues",
   "author": {
@@ -36,7 +36,7 @@
     "time-grunt": "^0.3.1"
   },
   "scripts": {
-    "start": "node app.js",
+    "start": "node server.js",
     "test": "grunt"
   },
   "bin": {
