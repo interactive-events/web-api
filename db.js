@@ -92,8 +92,8 @@ exports.Client = Client;
 /*
 var dummy = new Client({
     secret: "derp",
-    is_public: true,
-    is_trusted: true,
+    isPublic: true,
+    isTrusted: true,
     scope: "js"
   });
 dummy.save(function(err) {
