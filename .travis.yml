@@ -17,3 +17,6 @@ deploy:
   bucket_name: interactive-events-api-deploy
   on:
     branch: release
+before_install:
+- openssl aes-256-cbc -K $encrypted_f97b212754ab_key -iv $encrypted_f97b212754ab_iv
+  -in secret.js.enc -out secret.js -d
