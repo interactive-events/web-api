@@ -25,6 +25,7 @@
     "passport-local": "0.1.x",
     "passport-oauth2-client-password": "0.1.x",
     "restify": "git://github.com/OiNutter/node-restify",
+    "sns-mobile": "^1.0.2",
     "socket.io": "^1.2.0"
   },
   "devDependencies": {

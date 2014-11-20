@@ -51,7 +51,7 @@ function toLower (v) {
 
 // USER //
 var UserSchema = Schema({
-    username: {type: String, index: {unique: true, dropDups: true, required: '{PATH} is required!'} },
+    username: {type: String, index: {unique: true, dropDups: true, required: true} },
     password: String,
     name: String,
     created: { type: Date, default: Date.now }
@@ -121,17 +121,17 @@ exports.RefreshToken = RefreshToken;
 // EVENT //
 var EventSchema = Schema({
     //id: is automatic on _id 
-    title: String,
-    description: String, 
-    beacon: {type: ObjectId, ref: "BeaconSchema"},  
-    creator: {type: ObjectId, ref: "UserSchema"},  
-    admins: [ {type: ObjectId, ref: "UserSchema"} ],
+    title: { type: String, index: {required: true} },
+    description: { type: String, index: {required: true} }, 
+    beacon: { type: ObjectId, ref: "BeaconSchema", index: {required: true} },  
+    creator: { type: ObjectId, ref: "UserSchema", index: {required: true} },  
+    admins: [ { type: ObjectId, ref: "UserSchema", index: {required: true} } ],
     time: {
-        start: Date,
-        end: Date       
+        start: { type: Date, index: {required: true} },
+        end: { type: Date, index: {required: true} }       
     },
-    isPrivate: Boolean,
-    invitedUsers: [ {type: ObjectId, ref: "UserSchema"} ],
+    isPrivate: { type: Boolean, default: true},
+    invitedUsers: [ { type: ObjectId, ref: "UserSchema" } ],
 //    invited_user_groups: [ {type: ObjectId, ref: "UserGroupSchema"} ],
     activities: [ {type: ObjectId, ref: "EventModuleSchema"} ],
     currentParticipants: [ {type: ObjectId, ref: "UserSchema"} ],
@@ -225,9 +225,9 @@ dummy.save(function(err) {
 
 // ACTIVITY //
 var ActivitySchema = Schema({
-    name: String,
+    name: { type: String, index: {required:  true} },
     customData: String,
-    module: {type: ObjectId, ref: "ActivitySchema"}
+    module: {type: ObjectId, ref: "ActivitySchema", index: {required: true}}
 });
 mongoose.model('Activity', ActivitySchema);
 var Activity = mongoose.model('Activity');
