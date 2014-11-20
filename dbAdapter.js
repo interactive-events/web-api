@@ -1,5 +1,5 @@
-// TODO: connect this with an actual db... 
-
+var db = require("./db");
+/*
 var dummyUser = { id: 1, username: 'bob', password: 'secret', email: 'bob@example.com' };
 var dummyClient = { id: 1, secret: 'derp', publicSecret: true, trustedClient: true };
 var dummyTokens =  {
@@ -8,45 +8,80 @@ var dummyTokens =  {
 var dummyRefreshTokens =  {
 	"b": {clientId: 1, userId: 1}
 };
+*/
+var debug = false;
 
 function findUserById(id, callback) {
-    if(id == dummyUser.id) {
-        return callback(null, dummyUser);
-    }
-    return callback(new Error('User ' + id + ' does not exist'), null);
+    db.User.findById(id).exec(function(err, ret) {
+        if(debug) console.log("findUserById", err, ret);
+        callback(err, ret);
+    });
 }
 function findByUsername(username, callback) {
-    if(username == dummyUser.username) {
-        return callback(null, dummyUser);
-    }
-    return callback(new Error('User ' + username + ' does not exist'), null);
+    db.User.findOne({username: username}).exec(function(err, ret) {
+        if(debug) console.log("findByUsername", err, ret);
+        callback(err, ret);
+    });
 }
-function findByToken(token, callback) {
-    return callback(null, dummyTokens[token]);
+function findByToken(accessToken, callback) {
+    db.Token.findOne({token: accessToken}).exec(function(err, ret) {
+        if(debug) console.log("findByToken", err, ret);
+        callback(err, ret);
+    });
 }
 
 function findByClientId(clientId, callback) {
-    if(clientId == dummyClient.id) {
-        return callback(null, dummyClient);
-    }
-    return callback(new Error('Client ' + clientId + ' does not exist'), null);
+    db.Client.findById(clientId).exec(function(err, ret) {
+        if(debug) console.log("findByClientId", err, ret);
+        callback(err, ret);
+    });
 }
 
 function saveToken(token, expirationDate, clientId, userId, scope, callback) {
-	dummyTokens[token] = {expirationDate: expirationDate, clientId: clientId, userId: userId, scope: scope};
-	return callback(null);
+    if(typeof scope === 'undefined'){
+        scope = "*"; // TODO: change this when we use scope...?
+    };
+    db.Token.findOneAndUpdate({
+        user: db.mongoose.Types.ObjectId(userId), 
+        clientId: db.mongoose.Types.ObjectId(clientId)
+    }, {
+        token: token, 
+        expirationDate: expirationDate,
+        scope: scope
+    }, {
+        upsert: true // creates the object if it doesn't exist. defaults to false.
+    }, function(err, accessToken) {
+        if(debug) console.log("saveToken", err);
+        callback(err);
+    });
 }
 
 function saveRefreshToekn(refreshTokenHash, clientId, userId, callback) {
-	dummyTokens[refreshTokenHash] = {clientId: clientId, userId: userId};
-	return callback(null);
+    db.RefreshToken.findOneAndUpdate({
+        user: db.mongoose.Types.ObjectId(userId), 
+        clientId: db.mongoose.Types.ObjectId(clientId)
+    }, {
+        token: refreshTokenHash
+    }, {
+        upsert: true // creates the object if it doesn't exist. defaults to false.
+    }, function(err, accessToken) {
+        if(debug) console.log("saveToken", err);
+        callback(err);
+    });
 }
 
 function findRefreshToken(refreshTokenHash, callback) {
-	return callback(dummyRefreshTokens[refreshTokenHash]);
+    db.RefreshToken.findOne({token: refreshTokenHash}).exec(function(err, ret) {
+        if(debug) console.log("findRefreshToken", err, ret);
+        callback(err, ret);
+    });
 }
 function removeToken(token) {
-	dummyTokens[token] = null;
+    db.RefreshToken.findOne({token: refreshTokenHash}).remove().exec(function(err) {
+        if(err) {
+            if(debug) console.log("removeToken", err);
+        }
+    });
 }
 
 exports.findUserById = findUserById;

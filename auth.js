@@ -69,8 +69,8 @@ function validateClient(clientId, clientSecret, done) {
   return db.findByClientId(clientId, function(err, client) {
     if (err) { return done(err); }
     if (!client) { return done(null, false); }
-    if (!client.trustedClient) { return done(null, false); }
-    if (client.publicSecret != true && client.secret != clientSecret) { return done(null, false); }
+    if (!client.isTrusted) { return done(null, false); }
+    if (client.isPublic != true && client.secret != clientSecret) { return done(null, false); }
     return done(null, client);
   });
 }
@@ -110,7 +110,7 @@ passport.use("accessToken", new BearerStrategy(
       if (new Date() > token.expirationDate) {
         db.removeToken(accessTokenHash, function (err) { done(err) })
       } else {
-        db.findUserById(token.userId, function (err, user) {
+        db.findUserById(token.user, function (err, user) {
         if (err) return done(err)
         if (!user) return done(null, false);
           // no use of scopes for now

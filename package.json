@@ -16,7 +16,8 @@
   "dependencies": {
     "bcrypt": "^0.8.0",
     "crypto": "0.0.3",
-    "mongoose": "3.8.x",
+    "mongodb-uri": "^0.9.7",
+    "mongoose": "^3.8.19",
     "oauth2orize": "~1.0.1",
     "passport": "~0.1.12",
     "passport-http": "0.2.x",

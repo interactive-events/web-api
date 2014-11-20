@@ -22,11 +22,11 @@ server.exchange(oauth2orize.exchange.password(function (client, username, passwo
             
             var expirationDate = new Date(new Date().getTime() + (3600 * 1000));
             
-            db.saveToken(tokenHash, expirationDate, client.id, user.id, scope, function (err) {
+            db.saveToken(tokenHash, expirationDate, client._id, user._id, scope, function (err) {
                 if (err) return done(err);
-                db.saveRefreshToekn(refreshTokenHash, client.id, username, function (err) {
+                db.saveRefreshToekn(refreshTokenHash, client._id, user._id, function (err) {
                     if (err) return done(err);
-                    done(null, token, refreshToken, {expires_in: expirationDate, user_id: user.id});
+                    done(null, token, refreshToken, {expires_in: expirationDate, user_id: user._id});
                 });
             });
         //});
@@ -50,7 +50,7 @@ server.exchange(oauth2orize.exchange.refreshToken(function (client, refreshToken
     
         db.saveToken(token, expirationDate, clientId, userId, scope, function (err) {
             if (err) return done(err);
-            done(null, newAccessToken, refreshToken, {expires_in: expirationDate});
+            done(null, newAccessToken, refreshToken, {expiresIn: expirationDate});
         });
     });
 }));

@@ -2,6 +2,7 @@ function startServer(port) {
     var restify = require('restify');
     var passport = require('passport');
     var socketio = require('socket.io');
+    var db = require('./db');
     //var login = require('connect-ensure-login')
 
     require('./auth');
@@ -70,7 +71,7 @@ function startServer(port) {
     // curl -v http://.../secret/?access_token=123456789
     server.get('/secret', passport.authenticate('accessToken', { session: false }), //passport.authenticate('bearer', { session: false }), 
             function(req, res){
-        res.send("You are logged in!");
+        res.send("You are logged in! with username "+req.user.username+". id("+req.user._id+")");
     });
     
     /* Socket.io */
@@ -80,6 +81,20 @@ function startServer(port) {
             return modules.poll.start(req, res, next, "/events/"+req.params.eventId+"/modules/"+req.params.moduleId+"");
         }
         return next();
+    });
+
+    /* Database */
+
+    server.post('/events/:eventId/checkin', passport.authenticate('accessToken', { session: false }), function(req, res, next) {
+        db.Event.update({ _id: req.params.eventId }, 
+        { $push: { currentParticipants: db.mongoose.Types.ObjectId(req.user._id) } }, 
+        { upsert: false }, 
+        function(err, accessToken) {
+            if(err) {
+                return res.send(410, err); //401: gone
+            }
+            return res.send(200);
+        });
     });
 
     server.listen(process.env.PORT || port, function() {
