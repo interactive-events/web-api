@@ -16,8 +16,8 @@ var options = { server: { socketOptions: { keepAlive: 1, connectTimeoutMS: 30000
  * Mongoose's format.
  */
  var mongodbUri; //mongodb://user:pass@host:port/db';
-if(process.Env.dbUri) {
-    mongodbUri = process.Env.dbUri;
+if(process.env.dbUri) {
+    mongodbUri = process.env.dbUri;
 } else {
     mongodbUri = require('./secret').dbUri; //mongodb://user:pass@host:port/db';
 }
