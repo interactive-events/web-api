@@ -15,7 +15,13 @@ var options = { server: { socketOptions: { keepAlive: 1, connectTimeoutMS: 30000
  * Use the mongodb-uri library to help you convert from the standard format to
  * Mongoose's format.
  */
-var mongodbUri = require('./secret').dbUri; //mongodb://user:pass@host:port/db';
+ var mongodbUri; //mongodb://user:pass@host:port/db';
+if(process.Env.dbUri) {
+    mongodbUri = process.Env.dbUri;
+} else {
+    mongodbUri = require('./secret').dbUri; //mongodb://user:pass@host:port/db';
+}
+
 var mongooseUri = uriUtil.formatMongoose(mongodbUri);
  
 mongoose.connect(mongooseUri, options);
