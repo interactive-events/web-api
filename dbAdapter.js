@@ -77,7 +77,7 @@ function findRefreshToken(refreshTokenHash, callback) {
     });
 }
 function removeToken(token) {
-    db.RefreshToken.findOne({token: refreshTokenHash}).remove().exec(function(err) {
+    db.Token.findOne({token: token}).remove().exec(function(err) {
         if(err) {
             if(debug) console.log("removeToken", err);
         }

@@ -73,8 +73,8 @@ dummyUser.save();
 var TokenSchema = Schema({
     //id: is automatic on _id 
     token: String, 
-    client: {type: ObjectId, ref: "ClientSchema"},
-    user: {type: ObjectId, ref: "UserSchema"},
+    client: {type: ObjectId, ref: "Client"},
+    user: {type: ObjectId, ref: "User"},
     scope: String,
     expirationDate: Date,
     created: { type: Date, expires: 3600, default: Date.now } // delete from db after 1h. 
@@ -110,8 +110,8 @@ dummy.save(function(err) {
 // REFRESH TOKEN //
 var RefreshTokenSchema = Schema({
     token: String,
-    client: {type: ObjectId, ref: "ClientSchema"},
-    user: {type: ObjectId, ref: "UserSchema"}
+    client: {type: ObjectId, ref: "Client"},
+    user: {type: ObjectId, ref: "User"}
 });
 mongoose.model('RefreshToken', RefreshTokenSchema);
 var RefreshToken = mongoose.model('RefreshToken');
@@ -123,18 +123,18 @@ var EventSchema = Schema({
     //id: is automatic on _id 
     title: { type: String, index: {required: true} },
     description: { type: String, index: {required: true} }, 
-    beacon: { type: ObjectId, ref: "BeaconSchema", index: {required: true} },  
-    creator: { type: ObjectId, ref: "UserSchema", index: {required: true} },  
-    admins: [ { type: ObjectId, ref: "UserSchema", index: {required: true} } ],
+    beacon: { type: ObjectId, ref: "Beacon", index: {required: true} },  
+    creator: { type: ObjectId, ref: "User", index: {required: true} },  
+    admins: [ { type: ObjectId, ref: "User", index: {required: true} } ],
     time: {
         start: { type: Date, index: {required: true} },
         end: { type: Date, index: {required: true} }       
     },
     isPrivate: { type: Boolean, default: true},
-    invitedUsers: [ { type: ObjectId, ref: "UserSchema" } ],
+    invitedUsers: [ { type: ObjectId, ref: "User" } ],
 //    invited_user_groups: [ {type: ObjectId, ref: "UserGroupSchema"} ],
-    activities: [ {type: ObjectId, ref: "EventModuleSchema"} ],
-    currentParticipants: [ {type: ObjectId, ref: "UserSchema"} ],
+    activities: [ {type: ObjectId, ref: "Activity"} ],
+    currentParticipants: [ {type: ObjectId, ref: "User"} ],
     created: { type: Date, default: Date.now },
     
     location: {
@@ -162,7 +162,7 @@ var dummy = new Event({
     isPrivate: true,
     invitedUsers: [],
 //    invited_user_groups: [ {type: ObjectId, ref: "UserGroupSchema"} ],
-    activities: [],
+    activities: [ mongoose.Types.ObjectId("546da92147a9c1000078bb84") ],
     currentParticipants: [],
     
     location: {
@@ -227,7 +227,7 @@ dummy.save(function(err) {
 var ActivitySchema = Schema({
     name: { type: String, index: {required:  true} },
     customData: String,
-    module: {type: ObjectId, ref: "ActivitySchema", index: {required: true}}
+    module: {type: ObjectId, ref: "Module", index: {required: true}}
 });
 mongoose.model('Activity', ActivitySchema);
 var Activity = mongoose.model('Activity');
@@ -240,8 +240,15 @@ var dummy = new Activity({
   });
 dummy.save(function(err) {
     if(err) console.log(err);
-});
-*/
+});*/
+/*
+Activity.findById("547302104ded6f1322dc28f2").exec(function(err, act) {
+    Event.findById("547302104ded6f1322dc28f1").exec(function(err, ev) {
+        ev.activities.push(act);
+        ev.save();
+    });
+});*/
+
 
 /*
 // USER GROUP //

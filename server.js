@@ -19,7 +19,6 @@ function startServer(port) {
     
     var io = socketio.listen(server);   
     exports.io = io;
-    var modules = require('./event_modules')
 
     // Set cross origin headers for Ajax calls
     // TODO Maybe add specific Origin, such as the Web app URL
@@ -68,24 +67,23 @@ function startServer(port) {
         return res.send(202);
     });
 
+    var authenticate = passport.authenticate('accessToken', { session: false });
+    exports.authenticate = authenticate;
+
     // curl -v http://.../secret/?access_token=123456789
-    server.get('/secret', passport.authenticate('accessToken', { session: false }), //passport.authenticate('bearer', { session: false }), 
+    server.get('/secret', authenticate, //passport.authenticate('bearer', { session: false }), 
             function(req, res){
         res.send("You are logged in! with username "+req.user.username+". id("+req.user._id+")");
     });
-    
-    /* Socket.io */
 
-    server.get('/events/:eventId/modules/:moduleId/start', function(req, res, next) {
-        if(req.params.eventId == 1 && req.params.moduleId == 1) {
-            return modules.poll.start(req, res, next, "/events/"+req.params.eventId+"/modules/"+req.params.moduleId+"");
-        }
-        return next();
-    });
+
+    /* Module custom routes */
+    require('./event_modules')(server);
+    
 
     /* Database */
 
-    server.post('/events/:eventId/checkins', passport.authenticate('accessToken', { session: false }), function(req, res, next) {
+    server.post('/events/:eventId/checkins', authenticate, function(req, res, next) {
         db.Event.update({ _id: req.params.eventId }, 
         { $push: { currentParticipants: db.mongoose.Types.ObjectId(req.user._id) } }, 
         { upsert: false }, 
@@ -96,7 +94,37 @@ function startServer(port) {
             return res.send(200);
         });
     });
-    server.put('/events', passport.authenticate('accessToken', { session: false }), function(req, res, next) {
+    server.get('/events/:eventId', authenticate, function(req, res, next) {
+        db.Event.findById(req.params.eventId).lean().exec(function (err, events) {
+            if(err) return res.send(404);
+            events["id"] = events["_id"];
+            delete events["_id"];
+            delete events["__v"];
+            res.send(events);
+        });
+    });
+    server.get('/events', authenticate, function(req, res, next) {
+        var limit = req.params.limit || 10;
+        var offset = req.params.offset || 0;
+        db.Event.find().skip(offset).limit(limit).lean().exec(function (err, events) {
+            if(err) return res.send(404);
+            var tmpJson = [];
+            for(var key in events) {
+                events[key]["id"] = events[key]["_id"];
+                delete events[key]["_id"];
+                delete events[key]["__v"];
+                tmpJson.push({
+                    "event": events[key]
+                });
+            }
+            var resJson = {
+                "events": tmpJson,
+                "_metadata": [{totalCount: events.length, limit: limit, offset: offset}]
+            }
+            res.send(resJson);
+        });
+    });
+    server.put('/events', authenticate, function(req, res, next) {
         if(typeof req.params.title === 'undefined') {
             return res.send(403, "title undefined");
         }

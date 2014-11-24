@@ -26,7 +26,7 @@ server.exchange(oauth2orize.exchange.password(function (client, username, passwo
                 if (err) return done(err);
                 db.saveRefreshToekn(refreshTokenHash, client._id, user._id, function (err) {
                     if (err) return done(err);
-                    done(null, token, refreshToken, {expires_in: expirationDate, user_id: user._id});
+                    done(null, token, refreshToken, {expires_in: expirationDate.getTime(), user_id: user._id});
                 });
             });
         //});
@@ -46,7 +46,7 @@ server.exchange(oauth2orize.exchange.refreshToken(function (client, refreshToken
         var newAccessToken = utils.uid(256);
         var accessTokenHash = crypto.createHash('sha1').update(newAccessToken).digest('hex');
         
-        var expirationDate = new Date(new Date().getTime() + (3600 * 1000));
+        var expirationDate = new Date(new Date().getTime() + (3600 * 1));
     
         db.saveToken(token, expirationDate, clientId, userId, scope, function (err) {
             if (err) return done(err);

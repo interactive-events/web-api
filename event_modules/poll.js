@@ -14,6 +14,11 @@ function isNamespaceActive(socketNameSpace) {
 	return false;
 }
 
+module.exports = function(server) {
+	
+
+}
+
 exports.start = start;
 
 function start(req, res, next, socketNameSpace) {
