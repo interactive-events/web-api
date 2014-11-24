@@ -124,7 +124,7 @@ function startServer(port) {
             res.send(resJson);
         });
     });
-    server.put('/events', authenticate, function(req, res, next) {
+    server.post('/events', authenticate, function(req, res, next) {
         if(typeof req.params.title === 'undefined') {
             return res.send(403, "title undefined");
         }
