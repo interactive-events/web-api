@@ -96,7 +96,7 @@ function startServer(port) {
             return res.send(200);
         });
     });
-    server.put('/events', passport.authenticate('accessToken', { session: false }), function(req, res, next) {
+    server.post('/events', passport.authenticate('accessToken', { session: false }), function(req, res, next) {
         if(typeof req.params.title === 'undefined') {
             return res.send(403, "title undefined");
         }
