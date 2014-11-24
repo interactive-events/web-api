@@ -17,7 +17,8 @@ function startServer(port) {
     server.use(restify.bodyParser());
     server.use(passport.initialize());
     
-    var io = socketio.listen(server);   
+    var io = socketio.listen(server); 
+    var allowedHeaders =  "X-Requested-With, Authorization, content-type, accept"; 
     exports.io = io;
 
     // Set cross origin headers for Ajax calls
@@ -25,7 +26,7 @@ function startServer(port) {
     server.use(
     function crossOrigin(req,res,next){
         res.header("Access-Control-Allow-Origin", "*");
-        res.header("Access-Control-Allow-Headers", "X-Requested-With");
+        res.header("Access-Control-Allow-Headers", allowedHeaders);
         return next();
     });
 
@@ -35,6 +36,7 @@ function startServer(port) {
     if (req.method.toLowerCase() === 'options') {
         if (res.methods.indexOf('OPTIONS') === -1) {res.methods.push('OPTIONS');}
             res.header('Access-Control-Allow-Origin', "*");
+            res.header("Access-Control-Allow-Headers", allowedHeaders);
             return res.send(204);
     }
     else
