@@ -22,8 +22,7 @@ function startServer(port) {
 
     // Set cross origin headers for Ajax calls
     // TODO Maybe add specific Origin, such as the Web app URL
-    server.use(
-    function crossOrigin(req,res,next){
+    server.use(function crossOrigin(req,res,next){
         res.header("Access-Control-Allow-Origin", "*");
         res.header("Access-Control-Allow-Headers", "X-Requested-With");
         return next();
@@ -71,8 +70,7 @@ function startServer(port) {
     exports.authenticate = authenticate;
 
     // curl -v http://.../secret/?access_token=123456789
-    server.get('/secret', authenticate, //passport.authenticate('bearer', { session: false }), 
-            function(req, res){
+    server.get('/secret', authenticate, function(req, res){
         res.send("You are logged in! with username "+req.user.username+". id("+req.user._id+")");
     });
 
@@ -144,7 +142,7 @@ function startServer(port) {
             return res.send(403, "time.start undefined");
         }
 
-        var activitieIds = [];
+        var activities = [];
         if(req.params.activities instanceof Array) {
             for (var i=0; i < req.params.activities.length; i++) {
                 
@@ -165,7 +163,7 @@ function startServer(port) {
                 newActivity.save(function(err) {
                     if(err) console.log(err);
                 });
-                activitieIds[i] = db.mongoose.Types.ObjectId(newActivity._id);
+                activities[i] = newActivity;
             }
         }
 
@@ -181,7 +179,6 @@ function startServer(port) {
             }*/,
             isPrivate: req.params.isPrivate,
             invitedUsers: req.params.invitedUsers,
-            activities: activitieIds,
             location: req.params.location /*{
                 coordinates: {
                     longitude: req.params.location.coordinates.longitude,
@@ -191,11 +188,36 @@ function startServer(port) {
             }*/
         });
 
+        // for populate query
+        for (var i=0; i < req.params.activities.length; i++) {
+            newEvent.push(activities[i]);
+        }
+
         newEvent.save(function(err) {
             if(err) {
                 return res.send(500, err);
             }
             return res.send(201, newEvent._id);
+        });
+    });
+
+    server.get('/events/:eventId/activities', authenticate, function(req, res, next) {
+        var limit = req.params.limit || 10;
+        var offset = req.params.offset || 0;
+        db.Event.findById(req.params.eventId).populate('activities').lean().exec(function (err, events) {
+            if(err) return res.send(404, "event.id="+req.params.eventId+" not found");
+            var tmpJson = [];
+            for(var i=0; events.activities.length > i; i++) {
+                events.activities[i].id = events.activities[i]._id;
+                delete events.activities[i]._id;
+                delete events.activities[i].__v;
+                tmpJson.push(events.activities[i]);
+            }
+            var resJson = {
+                "activities": tmpJson,
+                "_metadata": [{totalCount: events.activities.length, limit: limit, offset: offset}]
+            }
+            res.send(resJson);
         });
     });
 

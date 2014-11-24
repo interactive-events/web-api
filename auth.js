@@ -109,6 +109,7 @@ passport.use("accessToken", new BearerStrategy(
       if (!token) return done(null, false);
       if (new Date() > token.expirationDate) {
         //db.removeToken(accessTokenHash, function (err) { done(err) }) // no need since it automaticly removes in db
+        return done(new Error("expired"), false);
       } else {
         db.findUserById(token.user, function (err, user) {
         if (err) return done(err)
