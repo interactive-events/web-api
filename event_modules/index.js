@@ -5,22 +5,40 @@ var modules = {
 var db = require('../db');
 var authenticate = require('../server').authenticate;
 
+var dbModules = {
+	"546da619aebf240000d8a1fe": "poll"
+};
+
 module.exports = function(server) {
 	// add custom rutes
-	modules.poll(server);
+	//modules.poll(server);
 
 	// add start
-	server.get('/events/:eventId/modules/:moduleId/start',  function(req, res, next) {
-		db.Event.findById(req.params.eventId).populate({ path: 'activities', model: 'Activity' }).exec(function(err, event) {
-			if(!err && ! event) return res.send(404);
-			console.log("start module", err, event)
-	    	return res.send("asd");
+	server.put('/events/:eventId/activities/:activityId/start', authenticate, function(req, res, next) {
+		
+		// TODO: migrate this 
+		db.Event.findById(req.params.eventId).populate({
+			path: 'activities', 
+			match: { _id: req.params.activityId }, 
+			model: 'Activity'
+		}).exec(function(err, event) {
+			if(err) return res.send(500, err)
+			if(!event) return res.send(404, "event not found");
+			for(var i=0; event.activities.length > i; i++) {
+				for(key in dbModules) {
+					if(event.activities[i].module == key && modules.hasOwnProperty(dbModules[key])) {
+						return modules[dbModules[key]].start(req, res, next, "/events/"+req.params.eventId+"/modules/"+req.params.activityId+"");
+					}
+				}
+	    		return res.send(500, "no module found in activity "+req.params.activityId+" not found in");
+            }
+	    	return res.send(404, "activity "+req.params.activityId+" not found in event "+req.params.eventId);
 	    });
-	    return;
+	    /*
 	    if(req.params.eventId == 1 && req.params.moduleId == 1) {
 	        return modules.poll.start(req, res, next, "/events/"+req.params.eventId+"/modules/"+req.params.moduleId+"");
 	    }
-	    return next();
+	    return next();*/
 	});
 }
 
