@@ -192,7 +192,7 @@ function startServer(port) {
 
         // for populate query
         for (var i=0; i < req.params.activities.length; i++) {
-            newEvent.push(activities[i]);
+            newEvent.activities.push(activities[i]);
         }
 
         newEvent.save(function(err) {
@@ -278,7 +278,18 @@ function startServer(port) {
             return res.send(beacons);
         });
     });
+/*
+    server.put("/users/:userId/", authenticate, function(req, res, next) {
+        if(req.user._id)
+        update = {};
+        if(req.params.hasOwnProperty("gcmToken")) update["gcmToken"] = req.params.gcmToken;
+        db.User.update({_id: req.params.userId}, update, {}, function(err, numAffected) {
+            if(err) return res.send(500, err);
+            if(numAffected == 0) res.send(404, "user with id "+req.params.userId+" not found");
 
+        });
+    });
+*/
     server.listen(process.env.PORT || port, function() {
         console.log('%s: now listening at %s', server.name, server.url);
     });
