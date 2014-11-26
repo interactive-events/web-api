@@ -245,6 +245,28 @@ function startServer(port) {
             res.send(resJson);
         });
     });
+    server.get('/users', authenticate, function(req, res, next) {
+        var limit = req.params.limit || 10;
+        var offset = req.params.offset || 0;
+        db.User.find().skip(offset).limit(limit).lean().exec(function (err, ret) {
+            if(err) return res.send(404);
+            var tmpJson = [];
+            for(var key in ret) {
+                ret[key]["id"] = ret[key]["_id"];
+                delete ret[key]["_id"];
+                delete ret[key]["__v"];
+                delete ret[key]["password"];
+                tmpJson.push({
+                    "user": ret[key]
+                });
+            }
+            var resJson = {
+                "users": tmpJson,
+                "_metadata": [{totalCount: ret.length, limit: limit, offset: offset}]
+            }
+            res.send(resJson);
+        });
+    });
     server.get('/activities/:activityId', authenticate, function(req, res, next) {
         db.Activity.findById(req.params.activityId).lean().exec(function (err, beacons) {
             if(err) return res.send(404);
