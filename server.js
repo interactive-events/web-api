@@ -169,6 +169,9 @@ function startServer(port) {
                 if(typeof req.params.activities[i].module === 'undefined') {
                     return res.send(400, "activity["+i+"].module undefined");
                 }
+                if(typeof req.params.activities[i].customData === 'object') {
+                    req.params.activities[i].customData = JSON.stringify(req.params.activities[i].customData);
+                }
                 var newActivity = new db.Activity({
                     name: req.params.activities[i].name,
                     customData: req.params.activities[i].customData,
