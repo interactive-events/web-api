@@ -68,6 +68,15 @@ var dummyUser = new User({
 dummyUser.save();
 */
 
+// USERS_VOTED //
+var UsersVotedSchema = Schema({
+    activityId: {type: String, index: {required: true} },
+    userId: String,
+    created: { type: Date, default: Date.now }
+});
+mongoose.model('UsersVoted', UsersVotedSchema);
+var UsersVoted = mongoose.model('UsersVoted');
+exports.UsersVoted = UsersVoted;
 
 // TOKENS //
 var TokenSchema = Schema({

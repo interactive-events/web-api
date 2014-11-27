@@ -1,5 +1,9 @@
 
 var io = require("../server").io;
+var db = require('../db');
+
+var authenticate = io.authenticate;
+
 
 // TODO: migrate to database. Needed if more than one node machine will ever run. 
 var namespaces = {};
@@ -15,8 +19,21 @@ function isNamespaceActive(socketNameSpace) {
 }
 
 module.exports = function(server) {
-	
 
+	server.get('/events/:eventId/activities/:activityId', authenticate, function(req, res, next) {
+
+		//req.params.eventId
+		return res.send("hasVoted="+hasVoted(req.user._id, req.param.activityId));
+	});
+}
+
+function hasVoted(userId, activityId) {
+	var res = db.UsersVoted.findOne({ activityId: activityId, userId: userId });
+	if (res != null) {
+		return true;
+	} else {
+		return false;
+	}
 }
 
 exports.start = start;
