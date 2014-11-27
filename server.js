@@ -106,7 +106,7 @@ function startServer(port) {
         });*/
     });
     server.get('/events/:eventId', authenticate, function(req, res, next) {
-        db.Event.findById(req.params.eventId).lean().exec(function (err, events) {
+        db.Event.findById(req.params.eventId).populate('activities').lean().exec(function (err, events) {
             if(err) return res.send(404);
             events["id"] = events["_id"];
             delete events["_id"];
@@ -118,7 +118,7 @@ function startServer(port) {
         var limit = req.params.limit || 10;
         var offset = req.params.offset || 0;
         // TODO: add beacons stuff
-        db.Event.find().skip(offset).limit(limit).lean().exec(function (err, events) {
+        db.Event.find().skip(offset).limit(limit).populate('activities').lean().exec(function (err, events) {
             if(err) return res.send(404);
             var tmpJson = [];
             for(var key in events) {
@@ -214,6 +214,81 @@ function startServer(port) {
             return res.send(201, newEvent._id);
         });
     });
+    server.put("/events/:eventId/", authenticate, function(req, res, next) {
+
+        var updates = {};
+        if(req.params.hasOwnProperty("started")) updates.started = req.params.started;
+        if(!req.params.hasOwnProperty("started")) return res.send(501);
+
+        db.Event.findById(req.params.eventId).exec(function(err, event) {
+            if(err) return res.send(500, err);
+            if(!event) return res.send(404, "event not found");
+            var isAdmin = false;
+            for(var i=0; i<event.admins.length; i++) {
+                if(event.admins[i].equals(req.user._id)) {
+                    isAdmin = true;
+                }
+            }
+            if(!isAdmin) return res.send(403, "You are not admin of this event");
+
+            if(updates.hasOwnProperty("started")) {
+                if(updates.started === false) return res.send(501);
+                // force it to start if if is not started
+                var now = new Date().getTime();
+                if(now < new Date(event.time.start).getTime() || new Date(event.time.end).getTime() < now) {
+                    event.time.start = new Date();
+                }
+
+        // TODO: http://stackoverflow.com/questions/13143945/dynamic-namespaces-socket-io 
+
+                // start the event socket.io scope
+                var nsp = io.of("/events/"+req.params.eventId);
+                nsp.on('connection', function(socket) {
+                    nsp.emit('join', { option: "0"});
+                });
+
+                // end the namespace
+                var context = {
+                    eventId: req.params.eventId,
+                    nsp: nsp,
+                    i: 0
+                };
+                function checkStillRunning() {
+                    if(context.i > 10) {
+                        context.nsp = null;
+                        delete context.nsp;
+                        return;
+                    }
+                    db.Event.findById(req.params.eventId).exec(function(err, event) {
+                        if(err) {
+                            console.log("checkStillRunning (of event "+context.eventId+") db error: ", err);
+                            context.i++;
+                            setTimeout(checkStillRunning, 10000); // 10 sec
+                        }
+                        if(!event) {
+                            context.nsp = null;
+                            delete context.nsp;
+                            return;
+                        }
+                        var now = new Date().getTime();
+                        if(now < new Date(event.time.start).getTime() || new Date(event.time.end).getTime() < now) {
+                            context.nsp = null;
+                            delete context.nsp;
+                            return;
+                        }
+                        setTimeout(checkStillRunning, ((new Date(event.time.end).getTime())-now)*1000);
+                    });
+                }
+                setTimeout(function() {
+                    checkStillRunning();
+                }, ((new Date(event.time.end).getTime())-now)*1000);
+            }
+             
+
+            event.save();
+            return res.send(200);
+        });
+    });
 
     server.get('/events/:eventId/activities', authenticate, function(req, res, next) {
         var limit = req.params.limit || 10;
@@ -304,6 +379,7 @@ function startServer(port) {
             return res.send(200);
         });
     });
+
 
     server.listen(process.env.PORT || port, function() {
         console.log('%s: now listening at %s', server.name, server.url);
