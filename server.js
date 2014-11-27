@@ -26,6 +26,7 @@ function startServer(port) {
     server.use(function crossOrigin(req,res,next){
         res.header("Access-Control-Allow-Origin", "*");
         res.header("Access-Control-Allow-Headers", allowedHeaders);
+        res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE")
         return next();
     });
 
