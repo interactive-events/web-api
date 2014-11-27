@@ -84,6 +84,17 @@ function startServer(port) {
     /* Database */
 
     server.post('/events/:eventId/checkins', authenticate, function(req, res, next) {
+        db.Event.findById(req.params.eventId, function(err, event) {
+            if(err) return res.send(500, err);
+            if(!event) return res.send(404, "event ("+req.params.eventId+") not found");
+            var now = new Date().getTime();
+            if(new Date(event.time.start).getTime() < now && now < new Date(event.time.end).getTime()) {
+                event.currentParticipants.push(db.mongoose.Types.ObjectId(req.user._id));
+                event.save();
+                return res.send(200);
+            }
+            return res.send(403, "event not started");
+        }); /*
         db.Event.update({ _id: req.params.eventId }, 
         { $push: { currentParticipants: db.mongoose.Types.ObjectId(req.user._id) } }, 
         { upsert: false }, 
@@ -92,7 +103,7 @@ function startServer(port) {
                 return res.send(410, err); //401: gone
             }
             return res.send(200);
-        });
+        });*/
     });
     server.get('/events/:eventId', authenticate, function(req, res, next) {
         db.Event.findById(req.params.eventId).lean().exec(function (err, events) {
@@ -106,6 +117,7 @@ function startServer(port) {
     server.get('/events', authenticate, function(req, res, next) {
         var limit = req.params.limit || 10;
         var offset = req.params.offset || 0;
+        // TODO: add beacons stuff
         db.Event.find().skip(offset).limit(limit).lean().exec(function (err, events) {
             if(err) return res.send(404);
             var tmpJson = [];
