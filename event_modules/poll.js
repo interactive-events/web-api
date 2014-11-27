@@ -36,9 +36,7 @@ function hasVoted(userId, activityId) {
 	}
 }
 
-exports.start = start;
-
-function start(req, res, next, socketNameSpace) {
+module.exports.start = function start(req, res, next, socketNameSpace) {
 	if(isNamespaceActive(socketNameSpace) == true) {
 		return res.send(410); // 410: Gone
 	}

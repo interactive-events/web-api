@@ -126,22 +126,22 @@ function startServer(port) {
     });
     server.post('/events', authenticate, function(req, res, next) {
         if(typeof req.params.title === 'undefined') {
-            return res.send(403, "title undefined");
+            return res.send(400, "title undefined");
         }
         if(typeof req.params.description === 'undefined') {
-            return res.send(403, "description undefined");
+            return res.send(400, "description undefined");
         }
         if(typeof req.params.beacon === 'undefined') {
-            return res.send(403, "beacon undefined");
+            return res.send(400, "beacon undefined");
         }
         if(typeof req.params.time === 'undefined') {
-            return res.send(403, "time undefined");
+            return res.send(400, "time undefined");
         }
         if(typeof req.params.time.end === 'undefined') {
-            return res.send(403, "time.end undefined");
+            return res.send(400, "time.end undefined");
         }
         if(typeof req.params.time.start === 'undefined') {
-            return res.send(403, "time.start undefined");
+            return res.send(400, "time.start undefined");
         }
 
         var activities = [];
@@ -149,13 +149,13 @@ function startServer(port) {
             for (var i=0; i < req.params.activities.length; i++) {
                 
                 if(typeof req.params.activities[i].name === 'undefined') {
-                    return res.send(403, "activity["+i+"].name undefined");
+                    return res.send(400, "activity["+i+"].name undefined");
                 }
                 if(typeof req.params.activities[i].customData === 'undefined') {
-                    return res.send(403, "activity["+i+"].customData undefined");
+                    return res.send(400, "activity["+i+"].customData undefined");
                 }
                 if(typeof req.params.activities[i].module === 'undefined') {
-                    return res.send(403, "activity["+i+"].module undefined");
+                    return res.send(400, "activity["+i+"].module undefined");
                 }
                 var newActivity = new db.Activity({
                     name: req.params.activities[i].name,
@@ -192,7 +192,7 @@ function startServer(port) {
 
         // for populate query
         for (var i=0; i < req.params.activities.length; i++) {
-            newEvent.push(activities[i]);
+            newEvent.activities.push(activities[i]);
         }
 
         newEvent.save(function(err) {
@@ -220,6 +220,76 @@ function startServer(port) {
                 "_metadata": [{totalCount: events.activities.length, limit: limit, offset: offset}]
             }
             res.send(resJson);
+        });
+    });
+
+
+    server.get('/beacons', authenticate, function(req, res, next) {
+        var limit = req.params.limit || 10;
+        var offset = req.params.offset || 0;
+        db.Beacon.find().skip(offset).limit(limit).lean().exec(function (err, beacons) {
+            if(err) return res.send(404);
+            var tmpJson = [];
+            for(var key in beacons) {
+                beacons[key]["id"] = beacons[key]["_id"];
+                delete beacons[key]["_id"];
+                delete beacons[key]["__v"];
+                tmpJson.push({
+                    "beacon": beacons[key]
+                });
+            }
+            var resJson = {
+                "beacons": tmpJson,
+                "_metadata": [{totalCount: beacons.length, limit: limit, offset: offset}]
+            }
+            res.send(resJson);
+        });
+    });
+    server.get('/users', authenticate, function(req, res, next) {
+        var limit = req.params.limit || 10;
+        var offset = req.params.offset || 0;
+        db.User.find().skip(offset).limit(limit).lean().exec(function (err, ret) {
+            if(err) return res.send(404);
+            var tmpJson = [];
+            for(var key in ret) {
+                ret[key]["id"] = ret[key]["_id"];
+                delete ret[key]["_id"];
+                delete ret[key]["__v"];
+                delete ret[key]["password"];
+                tmpJson.push({
+                    "user": ret[key]
+                });
+            }
+            var resJson = {
+                "users": tmpJson,
+                "_metadata": [{totalCount: ret.length, limit: limit, offset: offset}]
+            }
+            res.send(resJson);
+        });
+    });
+    server.get('/activities/:activityId', authenticate, function(req, res, next) {
+        db.Activity.findById(req.params.activityId).lean().exec(function (err, beacons) {
+            if(err) return res.send(404);
+            if(!beacons) return res.send(404);
+            console.log(beacons);
+            beacons["id"] = beacons["_id"];
+            delete beacons["_id"];
+            delete beacons["__v"];
+            return res.send(beacons);
+        });
+    });
+
+    server.put("/users/:userId/", authenticate, function(req, res, next) {
+        if(req.user._id != req.params.userId) return res.send(403, "You can only change your own user. ");
+
+        // TODO: fill in with more update fields. 
+        update = {};
+        if(req.params.hasOwnProperty("gcmToken")) update["gcmToken"] = req.params.gcmToken;
+
+        db.User.update({_id: req.params.userId}, update, {}, function(err, numAffected) {
+            if(err) return res.send(500, err);
+            if(numAffected == 0) res.send(404, "user with id "+req.params.userId+" not found");
+            return res.send(200);
         });
     });
 

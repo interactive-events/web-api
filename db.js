@@ -54,6 +54,7 @@ var UserSchema = Schema({
     username: {type: String, index: {unique: true, dropDups: true, required: true} },
     password: String,
     name: String,
+    gcmToken: String,
     created: { type: Date, default: Date.now }
 });
 mongoose.model('User', UserSchema);
