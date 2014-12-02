@@ -227,7 +227,9 @@ dummy.save(function(err) {
 // ACTIVITY //
 var ActivitySchema = Schema({
     name: { type: String, index: {required:  true} },
-    customData: String,
+    status: { type: Number },
+    customData: Schema.Types.Mixed,
+    //customData: String,
     module: {type: ObjectId, ref: "Module", index: {required: true}}
 });
 mongoose.model('Activity', ActivitySchema);

@@ -1,8 +1,6 @@
 
 var io = require("../server").io;
 
-// TODO: migrate to database. Needed if more than one node machine will ever run. 
-var namespaces = {};
 
 function isNamespaceActive(socketNameSpace) {
 	if(socketNameSpace in namespaces) {
@@ -19,18 +17,15 @@ module.exports = function(server) {
 
 }
 
-module.exports.start = function start(req, res, next, socketNameSpace) {
+module.exports.start = function start(req, res, next, socketNameSpace, activityId) {
 	if(isNamespaceActive(socketNameSpace) == true) {
 		return res.send(410); // 410: Gone
 	}
 
-	var nsp = io.of(socketNameSpace);
-	namespaces[socketNameSpace] = {
-		isActive: true
-	}
+	var nsp = io.of(socketNameSpace); // hopefully atatch to a existing nsp
 
-	nsp.on('connection', function(socket) {
-		nsp.emit('join', { option: "0"});
+	nsp.on('joinActivity'+activityId, function(socket) {
+		socket.join(activityId);
 	});
 
 	// TODO: periodic read from db and push that untill all have voted. 

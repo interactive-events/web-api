@@ -3,6 +3,7 @@ function startServer(port) {
     var passport = require('passport');
     var socketio = require('socket.io');
     var db = require('./db');
+    var push = require('./push');
     //var login = require('connect-ensure-login')
 
     require('./auth');
@@ -170,9 +171,6 @@ function startServer(port) {
                 if(typeof req.params.activities[i].module === 'undefined') {
                     return res.send(400, "activity["+i+"].module undefined");
                 }
-                if(typeof req.params.activities[i].customData === 'object') {
-                    req.params.activities[i].customData = JSON.stringify(req.params.activities[i].customData);
-                }
                 var newActivity = new db.Activity({
                     name: req.params.activities[i].name,
                     customData: req.params.activities[i].customData,
@@ -235,20 +233,22 @@ function startServer(port) {
             }
             if(!isAdmin) return res.send(403, "You are not admin of this event");
 
+            // EVENT STARTS //
             if(updates.hasOwnProperty("started")) {
                 if(updates.started === false) return res.send(501);
-                // force it to start if if is not started
+                // force it to start if not started
                 var now = new Date().getTime();
                 if(now < new Date(event.time.start).getTime() || new Date(event.time.end).getTime() < now) {
                     event.time.start = new Date();
                 }
 
-        // TODO: http://stackoverflow.com/questions/13143945/dynamic-namespaces-socket-io 
-
-                // start the event socket.io scope
+                // start the event socket.io namespace (or atatch to existing)
                 var nsp = io.of("/events/"+req.params.eventId);
                 nsp.on('connection', function(socket) {
-                    nsp.emit('join', { option: "0"});
+                    nsp.emit('new-participant', { error: "Not implemented (but someone joined)"});
+                });
+                nsp.on('disconnect', function(socket) {
+                    nsp.emit('left-participant', { error: "Not implemented (but someone left)"});
                 });
 
                 // end the namespace
@@ -283,9 +283,8 @@ function startServer(port) {
                         setTimeout(checkStillRunning, ((new Date(event.time.end).getTime())-now)*1000);
                     });
                 }
-                setTimeout(function() {
-                    checkStillRunning();
-                }, ((new Date(event.time.end).getTime())-now)*1000);
+                setTimeout(checkStillRunning, ((new Date(event.time.end).getTime())-now)*1000);
+
             }
              
 
@@ -369,12 +368,17 @@ function startServer(port) {
             return res.send(beacons);
         });
     });
+    // server.put('/activities/:activityId'). ... is in event_modules/index.js.. sorry!
+    server.post('/events/:eventId/activities/', authenticate, function(req, res, next) {
+        return res.send(501); // not implemented
+    });
 
     server.put("/users/:userId/", authenticate, function(req, res, next) {
         if(req.user._id != req.params.userId) return res.send(403, "You can only change your own user. ");
 
         // TODO: fill in with more update fields. 
         update = {};
+        // TODO: encrypt token!
         if(req.params.hasOwnProperty("gcmToken")) update["gcmToken"] = req.params.gcmToken;
 
         db.User.update({_id: req.params.userId}, update, {}, function(err, numAffected) {
