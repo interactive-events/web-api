@@ -3,6 +3,7 @@ var io = require("../server").io;
 
 
 function isNamespaceActive(socketNameSpace) {
+	return false;
 	if(socketNameSpace in namespaces) {
 		if(namespaces[socketNameSpace].isActive == true) {
 			return true;
@@ -32,7 +33,7 @@ module.exports.start = function start(req, res, next, socketNameSpace, activityI
 
 	// hardcoded example for now:
 	
-
+/*
 	setTimeout(function() {
 		var i=0;
 		function randomInt(low, high) {
@@ -55,7 +56,7 @@ module.exports.start = function start(req, res, next, socketNameSpace, activityI
 		}
 		doVote();
 	}, 0); // fork
-	
+	*/
 	return res.send(201);
 }
 
