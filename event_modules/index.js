@@ -11,7 +11,7 @@ var dbModules = {
 
 module.exports = function(server) {
 	// add custom rutes
-	//modules.poll(server);
+	modules.poll(server);
 
 	// add start
 	server.put('/events/:eventId/activities/:activityId/start', authenticate, function(req, res, next) {

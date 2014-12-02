@@ -1,8 +1,8 @@
 
-var io = require("../server").io;
+var app = require("../server");
 var db = require('../db');
 
-var authenticate = io.authenticate;
+var authenticate = app.authenticate;
 
 
 // TODO: migrate to database. Needed if more than one node machine will ever run. 
@@ -21,19 +21,54 @@ function isNamespaceActive(socketNameSpace) {
 module.exports = function(server) {
 
 	server.get('/events/:eventId/activities/:activityId', authenticate, function(req, res, next) {
+		// [] is user admin for this event - isAdmin = true
 
-		//req.params.eventId
-		return res.send("hasVoted="+hasVoted(req.user._id, req.param.activityId));
+		// has user already voted in this poll?
+		var hasVoted = null;
+		db.PollVoter.findOne({ 'activity': req.params.activityId, 'userId': req.user._id }).exec(function (err, pollVoter) {
+			if (err) return res.send(404);
+			if (pollVoter != null) {
+				console.log(pollVoter);
+				hasVoted = true;
+			} else {
+				hasVoted = false;
+			}
+			console.log("hasVoted=", hasVoted);
+		});
+
+		// is the poll still active (eg. is the event still ongoing?)
+		var eventFinished = null;
+		db.Event.findById(req.params.eventId).lean().exec(function (err, events) {
+			if(err) return res.send(404);
+			var currentTime = new Date();
+			var eventEndTime = new Date(events.time.end);
+			if (currentTime.getTime() > eventEndTime.getTime()) {
+				eventFinished = true;
+			} else {
+				eventFinished = false;
+			}
+			console.log("eventFinished=", eventFinished);
+		});
+
+		db.Activity.findById(req.params.activityId).lean().exec(function (err, activity) {
+			if (err) return res.send(404);
+			activity["id"] = activity["_id"];
+			delete activity["_id"];
+			delete activity["__v"];
+			console.log("activity=",activity);
+			pollDesc = JSON.parse(activity.customData);
+			console.log("");
+			console.log("pollDesc=",pollDesc);
+			console.log("pollDesc['pollDescription']=",pollDesc['pollDescription']);
+			tmpJson = {
+				'pollDescription': pollDesc['pollDescription'],
+				'hasVoted': hasVoted,
+				'eventFinished': eventFinished
+			}
+			activity.customData = tmpJson;
+			res.send(activity);
+		});
 	});
-}
-
-function hasVoted(userId, activityId) {
-	var res = db.UsersVoted.findOne({ activityId: activityId, userId: userId });
-	if (res != null) {
-		return true;
-	} else {
-		return false;
-	}
 }
 
 module.exports.start = function start(req, res, next, socketNameSpace) {
@@ -41,7 +76,7 @@ module.exports.start = function start(req, res, next, socketNameSpace) {
 		return res.send(410); // 410: Gone
 	}
 
-	var nsp = io.of(socketNameSpace);
+	var nsp = app.io.of(socketNameSpace);
 	namespaces[socketNameSpace] = {
 		isActive: true
 	}
