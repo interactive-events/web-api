@@ -3,8 +3,12 @@
 
 var gcm = require('node-gcm');
 
-var gcmKey = require('./secret').gcmKey;
-if(process.env.gcmKey) gcmKey = process.env.gcmKey;
+var gcmKey;
+if(process.env.gcmKey) {
+    gcmKey = process.env.gcmKey;
+} else {
+    gcmKey = require('./secret').gcmKey;
+}
 
 
 
