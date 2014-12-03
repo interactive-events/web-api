@@ -14,7 +14,7 @@ module.exports = function(server) {
 	// add custom rutes
 	modules.poll(server);
 
-	server.get('/events/:eventId/activities/:activityId/', authenticate, function(req, res, next) {
+	server.get('/events/:eventId/activities/:activityId', authenticate, function(req, res, next) {
 		db.Event.findById(req.params.eventId).populate({
 			path: 'activities', 
 			match: { _id: req.params.activityId }, 
