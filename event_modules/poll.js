@@ -4,8 +4,6 @@ var db = require('../db');
 
 var authenticate = app.authenticate;
 
-
-
 function isNamespaceActive(socketNameSpace) {
 	return false;
 	if(socketNameSpace in namespaces) {
@@ -21,22 +19,36 @@ module.exports = function(server) {
 
 	server.put('/events/:eventId/activities/:activityId/vote', authenticate, function(req, res, next) {
 
-		db.Activity.findById(req.params.activityId).exec(function (err, activity) {
-			vts = activity.customData.pollResults.votes;
-			for(var i=0; vts.length > i; i++) {
-				if (vts[i].answerId == req.params.answerId) {
-					activity.customData.pollResults.votes[i].votes = activity.customData.pollResults.votes[i].votes +1;
-					activity.customData.pollResults.numberOfVotes = activity.customData.pollResults.numberOfVotes +1;
-					activity.markModified("customData");
-					activity.save(function(err) {
-						if(err) console.log(err);
-					});
-					break;
+		// check if user already voted
+		var alreadyVoted = null;
+		db.PollVoter.findOne({ 'activity': req.params.activityId, userId: req.user._id }, function(err, voter) {
+			if (err) {return res.send(500, err);}
+			if (voter != null) { return res.send(404, "user already voted"); }
+
+			db.Activity.findById(req.params.activityId).exec(function (err, activity) {
+				vts = activity.customData.pollResults.votes;
+				for(var i=0; vts.length > i; i++) {
+					if (vts[i].answerId == req.params.answerId) {
+						activity.customData.pollResults.votes[i].votes = activity.customData.pollResults.votes[i].votes +1;
+						activity.customData.pollResults.numberOfVotes = activity.customData.pollResults.numberOfVotes +1;
+						activity.markModified("customData");
+						activity.save(function(err) {
+							if(err) console.log(err);
+						});
+						break;
+					}
 				}
-			}
+			});
+
+			// store the fact that the user has laid his/her vote in this poll!!!!
+			db.PollVoter.create({ activity: req.params.activityId, userId: req.user._id }, function (err, voter) {
+				if(err) return res.send(500, err);
+			});
+
 			var nsp = app.io.of("/events/"+req.params.eventId);
-			nsp.to(req.params.activityId).emit('vote', { option: req.params.answerId});
+			nsp.to(req.params.activityId).emit('vote', { answerId: req.params.answerId});
 			return res.send(200);
+
 		});
 	});
 };
