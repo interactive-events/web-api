@@ -13,8 +13,10 @@ server.exchange(oauth2orize.exchange.password(function (client, username, passwo
   db.findByUsername(username, function (err, user) {
         if (err) return done(err);
         if (!user) return done(null, false);
-        //bcrypt.compare(password, user.password, function (err, res) {
-            if (password != user.password) return done(null, false);
+        bcrypt.compare(password, user.password, function (err, res) {
+            if(err) return done(err);
+            if(res !== true) return done(null, false);
+            //if (password != user.password) return done(null, false);
             var token = utils.uid(256);
             var refreshToken = utils.uid(256);
             var tokenHash = crypto.createHash('sha1').update(token).digest('hex');
@@ -29,7 +31,7 @@ server.exchange(oauth2orize.exchange.password(function (client, username, passwo
                     done(null, token, refreshToken, {expires_in: expirationDate.getTime(), user_id: user._id});
                 });
             });
-        //});
+        });
     });
 }));
 
