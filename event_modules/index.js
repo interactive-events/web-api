@@ -12,7 +12,7 @@ var dbModules = {
 
 module.exports = function(server) {
 	// add custom rutes
-	//modules.poll(server);
+	modules.poll(server);
 
 	// yes, put on activity needs to go under events/eventId. Push needs access to event and activity collection dont have connection to event. 
 	server.put('/events/:eventId/activities/:activityId', authenticate, function(req, res, next) {

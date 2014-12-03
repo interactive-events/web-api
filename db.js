@@ -69,6 +69,15 @@ var dummyUser = new User({
 dummyUser.save();
 */
 
+// POLL VOTER //
+var PollVoterSchema = Schema({
+    activity: { type: ObjectId, ref: "Activity", index: {required: true} },
+    userId: { type: String, index: {required: true} },
+    created: { type: Date, default: Date.now }
+});
+mongoose.model('PollVoter', PollVoterSchema);
+var PollVoter = mongoose.model('PollVoter');
+exports.PollVoter = PollVoter;
 
 // TOKENS //
 var TokenSchema = Schema({
