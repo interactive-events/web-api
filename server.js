@@ -4,6 +4,8 @@ function startServer(port) {
     var socketio = require('socket.io');
     var db = require('./db');
     var push = require('./push');
+    var crypto = require('crypto');
+    var bcrypt = require('bcrypt');
     //var login = require('connect-ensure-login')
 
     require('./auth');
@@ -137,6 +139,8 @@ function startServer(port) {
                         events[key]["id"] = events[key]["_id"];
                         delete events[key]["_id"];
                         delete events[key]["__v"];
+                        events[key].time.startTimestamp = new Date(events[key].time.start).getTime();
+                        events[key].time.endTimestamp = new Date(events[key].time.end).getTime();
                         tmpJson.push({
                             "event": events[key]
                         });
@@ -239,8 +243,10 @@ function startServer(port) {
         });
 
         // for populate query
-        for (var i=0; i < req.params.activities.length; i++) {
-            newEvent.activities.push(activities[i]);
+        if(req.params.activities instanceof Array) {
+            for (var i=0; i < req.params.activities.length; i++) {
+                newEvent.activities.push(activities[i]);
+            }
         }
 
         newEvent.save(function(err) {
@@ -422,6 +428,36 @@ function startServer(port) {
         });
     });
 
+    server.post("/users", function(req, res, next) {
+
+        if(typeof req.params.email === 'undefined') {
+            return res.send(400, "email undefined");
+        }
+        if(typeof req.params.password === 'undefined') {
+            return res.send(400, "password undefined");
+        }
+        if(typeof req.params.name === 'undefined') {
+            return res.send(400, "name undefined");
+        }
+
+        bcrypt.genSalt(10, function(err, salt) {
+            bcrypt.hash(req.params.password, salt, function(err, hash) {
+                if(err) return res.send(500, err);
+                delete req.params.password;
+                db.User.findOne({username: req.params.email}).exec(function(err, user) {
+                    if(err) return res.send(500, err);
+                    if(user) return res.send(400, "username exeist");
+                    var newUser = new db.User({
+                        name: req.params.name,
+                        username: req.params.email,
+                        password: hash
+                    });
+                    newUser.save();
+                    return res.send(201, newUser._id);
+                });
+            });
+        });
+    });
 
     server.listen(process.env.PORT || port, function() {
         console.log('%s: now listening at %s', server.name, server.url);
