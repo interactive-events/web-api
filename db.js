@@ -183,6 +183,7 @@ dummy.save(function(err) {
 var BeaconSchema = Schema({
     description: String,
     id: String,
+    uuid: String,
     minor: Number,
     major: Number
 });
