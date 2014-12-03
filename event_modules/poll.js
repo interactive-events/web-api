@@ -31,9 +31,12 @@ module.exports = function(server) {
 					activity.save(function(err) {
 						if(err) console.log(err);
 					});
-					return res.send(200);
+					break;
 				}
 			}
+			var nsp = app.io.of("/events/"+req.params.eventId);
+			nsp.to(req.params.activityId).emit('vote', { option: req.params.answerId});
+			return res.send(200);
 		});
 	});
 };
@@ -87,7 +90,7 @@ module.exports.start = function(req, res, next, socketNameSpace, activityId) {
 		return res.send(410); // 410: Gone
 	}
 
-	var nsp = io.of(socketNameSpace); // hopefully atatch to a existing nsp
+	var nsp = app.io.of(socketNameSpace); // hopefully attach to an existing nsp
 
 	nsp.on('joinActivity'+activityId, function(socket) {
 		socket.join(activityId);
@@ -115,7 +118,7 @@ module.exports.start = function(req, res, next, socketNameSpace, activityId) {
 			i++;
 			console.log("doVote("+i+"): "+vote+". sleep: ", sleep);
 
-			nsp.emit('vote', { option: vote});
+			nsp.emit('vote', { option: answerId});
 			setTimeout(doVote, sleep);
 		}
 		doVote();
