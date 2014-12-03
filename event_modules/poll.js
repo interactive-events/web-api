@@ -18,7 +18,7 @@ function isNamespaceActive(socketNameSpace) {
 }
 
 module.exports = function(server) {
-
+/*
 	server.get('/events/:eventId/activities/:activityId', authenticate, function(req, res, next) {
 		// [] is user admin for this event - isAdmin = true
 
@@ -60,7 +60,7 @@ module.exports = function(server) {
 			//console.log("activity (after)=",activity);
 			res.send(activity);
 		});
-	});
+	});*/
 
 	server.put('/events/:eventId/activities/:activityId/vote', authenticate, function(req, res, next) {
 
@@ -79,10 +79,13 @@ module.exports = function(server) {
 			}
 		});
 	});
-
 }
-
-module.exports.start = function start(req, res, next, socketNameSpace, activityId) {
+module.exports.get = function(req, res, next, event, activity) {
+	activity.customData.superDuperCustomStuff = "asdasdasd"; // example, remove this
+	activity.eventId = event.id; // example, remove this
+	res.send(activity);
+};
+module.exports.start = function(req, res, next, socketNameSpace, activityId) {
 	if(isNamespaceActive(socketNameSpace) == true) {
 		return res.send(410); // 410: Gone
 	}

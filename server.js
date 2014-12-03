@@ -117,26 +117,60 @@ function startServer(port) {
         });
     });
     server.get('/events', authenticate, function(req, res, next) {
-        var limit = req.params.limit || 10;
-        var offset = req.params.offset || 0;
-        // TODO: add beacons stuff
-        db.Event.find().skip(offset).limit(limit).populate('activities').lean().exec(function (err, events) {
-            if(err) return res.send(404);
-            var tmpJson = [];
-            for(var key in events) {
-                events[key]["id"] = events[key]["_id"];
-                delete events[key]["_id"];
-                delete events[key]["__v"];
-                tmpJson.push({
-                    "event": events[key]
-                });
+
+        function getEvents(req, res, next, beaconIds) {
+            var limit = req.params.limit || 10;
+            var offset = req.params.offset || 0;
+            var filter = {
+                "invitedUsers": {$in: [req.user._id]}
+            };
+            if(beaconIds.length > 0) {
+                filter.beacon = {$in: beaconIds};
             }
-            var resJson = {
-                "events": tmpJson,
-                "_metadata": [{totalCount: events.length, limit: limit, offset: offset}]
-            }
-            res.send(resJson);
-        });
+            console.log("filter: ", filter, beaconIds);
+            db.Event.find(filter).skip(offset).limit(limit).populate('activities').lean().exec(function (err, events) {
+                if(err) return res.send(404);
+                var tmpJson = [];
+                for(var key in events) {
+                    //if(events[key].isPrivate === false || events[key].invitedUsers.indexOf(req.user._id)) {
+                    if(events[key].invitedUsers.indexOf(req.user._id)) {
+                        events[key]["id"] = events[key]["_id"];
+                        delete events[key]["_id"];
+                        delete events[key]["__v"];
+                        tmpJson.push({
+                            "event": events[key]
+                        });
+                    }
+                }
+                var resJson = {
+                    "events": tmpJson,
+                    "_metadata": [{totalCount: events.length, limit: limit, offset: offset}]
+                }
+                res.send(resJson);
+            }); 
+        }
+
+        var beaconFilter = {};
+        if(req.params.beaconsUUID) beaconFilter.uuid = req.params.beaconsUUID;
+        if(req.params.beaconsMinor) beaconFilter.minor = req.params.beaconsMinor;
+        if(req.params.beaconsMajor) beaconFilter.major = req.params.beaconsMajor;
+        if(Object.keys(beaconFilter).length > 0) {
+            db.Beacon.find(beaconFilter).exec(function(err, beacons) {
+                if(err) return res.send(500, err);
+                if(!beacons) return res.send(404);
+                var beaconIds = [];
+                for(var i=0; i<beacons.length; i++) {
+                    beaconIds.push(beacons[i]._id);
+                }
+                if(beaconIds.length == 0) {
+                    return res.send(404);
+                }
+                return getEvents(req, res, next, beaconIds);
+            });
+        } else {
+            return getEvents(req, res, next, []);
+        }
+        
     });
     server.post('/events', authenticate, function(req, res, next) {
         if(typeof req.params.title === 'undefined') {
