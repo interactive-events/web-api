@@ -32,7 +32,7 @@ module.exports = function(server) {
 			} else {
 				hasVoted = false;
 			}
-			console.log("hasVoted=", hasVoted);
+			//console.log("hasVoted=", hasVoted);
 		});
 
 		// is the poll still active (eg. is the event still ongoing?)
@@ -46,28 +46,40 @@ module.exports = function(server) {
 			} else {
 				eventFinished = false;
 			}
-			console.log("eventFinished=", eventFinished);
+			//console.log("eventFinished=", eventFinished);
 		});
 
 		db.Activity.findById(req.params.activityId).lean().exec(function (err, activity) {
 			if (err) return res.send(404);
+			//console.log("activity (before)=",activity);
 			activity["id"] = activity["_id"];
 			delete activity["_id"];
 			delete activity["__v"];
-			console.log("activity=",activity);
-			pollDesc = JSON.parse(activity.customData);
-			console.log("");
-			console.log("pollDesc=",pollDesc);
-			console.log("pollDesc['pollDescription']=",pollDesc['pollDescription']);
-			tmpJson = {
-				'pollDescription': pollDesc['pollDescription'],
-				'hasVoted': hasVoted,
-				'eventFinished': eventFinished
-			}
-			activity.customData = tmpJson;
+			activity.customData.hasVoted = hasVoted;
+			activity.customData.eventFinished = eventFinished;
+			//console.log("activity (after)=",activity);
 			res.send(activity);
 		});
 	});
+
+	server.put('/events/:eventId/activities/:activityId/vote', authenticate, function(req, res, next) {
+
+		db.Activity.findById(req.params.activityId).exec(function (err, activity) {
+			vts = activity.customData.pollResults.votes;
+			for(var i=0; vts.length > i; i++) {
+				if (vts[i].answerId == req.params.answerId) {
+					activity.customData.pollResults.votes[i].votes = activity.customData.pollResults.votes[i].votes +1;
+					activity.customData.pollResults.numberOfVotes = activity.customData.pollResults.numberOfVotes +1;
+					activity.markModified("customData");
+					activity.save(function(err) {
+						if(err) console.log(err);
+					});
+					return res.send(200);
+				}
+			}
+		});
+	});
+
 }
 
 module.exports.start = function start(req, res, next, socketNameSpace, activityId) {
