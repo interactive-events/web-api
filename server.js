@@ -124,7 +124,8 @@ function startServer(port) {
             var limit = req.params.limit || 10;
             var offset = req.params.offset || 0;
             var filter = {
-                "invitedUsers": {$in: [req.user._id]}
+                "invitedUsers": {$in: [req.user._id]},
+                "admins": {$in: [req.user._id]}
             };
             if(beaconIds.length > 0) {
                 filter.beacon = {$in: beaconIds};
