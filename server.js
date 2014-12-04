@@ -260,7 +260,7 @@ function startServer(port) {
             return res.send(201, newEvent._id);
         });
     });
-    server.put("/events/:eventId/", authenticate, function(req, res, next) {
+    server.put("/events/:eventId", authenticate, function(req, res, next) {
 
         var updates = {};
         if(req.params.hasOwnProperty("started")) updates.started = req.params.started;
