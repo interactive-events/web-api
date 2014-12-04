@@ -28,7 +28,7 @@ server.exchange(oauth2orize.exchange.password(function (client, username, passwo
                 if (err) return done(err);
                 db.saveRefreshToekn(refreshTokenHash, client._id, user._id, function (err) {
                     if (err) return done(err);
-                    done(null, token, refreshToken, {expires_in: expirationDate.getTime(), user_id: user._id, name: user.name});
+                    done(null, token, refreshToken, {expires_in: expirationDate.getTime(), user_id: user._id, user_name: user.name});
                 });
             });
         });
