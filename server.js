@@ -201,6 +201,10 @@ function startServer(port) {
             return res.send(400, "time.start undefined");
         }
 
+        if(new Date(req.params.time.end).getTime() < new Date(req.params.start).getTime()) {
+            return res.send(400, "Start time is before end time. ");
+        }
+
         var activities = [];
         if(req.params.activities instanceof Array) {
             for (var i=0; i < req.params.activities.length; i++) {
@@ -283,7 +287,10 @@ function startServer(port) {
                 if(updates.started === false) return res.send(501);
                 // force it to start if not started
                 var now = new Date().getTime();
-                if(now < new Date(event.time.start).getTime() || new Date(event.time.end).getTime() < now) {
+                if(now < new Date(event.time.start).getTime()) {
+                    if(now > new Date(event.time.end).getTime()) {
+                        event.time.end = new Date(now+(new Date(event.time.end).getTime()-new Date(event.time.start).getTime()));
+                    }
                     event.time.start = new Date();
                 }
 
@@ -346,6 +353,8 @@ function startServer(port) {
             var tmpJson = [];
             for(var i=0; events.activities.length > i; i++) {
                 events.activities[i].id = events.activities[i]._id;
+                // TODO: integrate this with event_modules/index.js for dynamicly adding more modules in future...
+                events.activities[i].url = "http://interactive-events-web-app.s3-website-eu-west-1.amazonaws.com/events/"+req.params.eventId+"/activities/"+events.activities[i]._id+"/vote"
                 delete events.activities[i]._id;
                 delete events.activities[i].__v;
                 tmpJson.push(events.activities[i]);
