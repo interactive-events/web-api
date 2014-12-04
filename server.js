@@ -26,10 +26,10 @@ function startServer(port) {
 
     // Set cross origin headers for Ajax calls
     // TODO Maybe add specific Origin, such as the Web app URL
-    server.use(function crossOrigin(req,res,next){
+    server.use(function(req,res,next){
         res.header("Access-Control-Allow-Origin", "*");
         res.header("Access-Control-Allow-Headers", allowedHeaders);
-        res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE")
+        res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
         return next();
     });
 
@@ -40,6 +40,7 @@ function startServer(port) {
         if (res.methods.indexOf('OPTIONS') === -1) {res.methods.push('OPTIONS');}
             res.header('Access-Control-Allow-Origin', "*");
             res.header("Access-Control-Allow-Headers", allowedHeaders);
+            res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
             return res.send(204);
     }
     else
