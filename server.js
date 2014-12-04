@@ -170,13 +170,13 @@ function startServer(port) {
         if(Object.keys(beaconFilter).length > 0) {
             db.Beacon.find(beaconFilter).exec(function(err, beacons) {
                 if(err) return res.send(500, err);
-                if(!beacons) return res.send(404);
+                if(!beacons) return res.send(404, "beacons not found");
                 var beaconIds = [];
                 for(var i=0; i<beacons.length; i++) {
                     beaconIds.push(beacons[i]._id);
                 }
                 if(beaconIds.length == 0) {
-                    return res.send(404);
+                    return res.send(404, "no beacons found");
                 }
                 return getEvents(req, res, next, beaconIds);
             });
@@ -278,7 +278,10 @@ function startServer(port) {
 
         var updates = {};
         if(req.params.hasOwnProperty("started")) updates.started = req.params.started;
-        if(!req.params.hasOwnProperty("started")) return res.send(501);
+
+        if(Object.keys(updates).length == 0) { 
+            return res.send(401, "No data to update");
+        }
 
         db.Event.findById(req.params.eventId).exec(function(err, event) {
             if(err) return res.send(500, err);
@@ -293,15 +296,18 @@ function startServer(port) {
 
             // EVENT STARTS //
             if(updates.hasOwnProperty("started")) {
-                if(updates.started === false) return res.send(501);
+                if(updates.started === false) return res.send(501, "false started is not implemented");
                 // force it to start if not started
                 var now = new Date().getTime();
-                if(now < new Date(event.time.start).getTime()) {
+                if(now < new Date(event.time.start).getTime() || new Date(event.time.end).getTime() < now) {
                     if(now > new Date(event.time.end).getTime()) {
                         event.time.end = new Date(now+(new Date(event.time.end).getTime()-new Date(event.time.start).getTime()));
+                        console.log("new end: ");
                     }
                     event.time.start = new Date();
+                    console.log("new start: ", event, new Date());
                 }
+                console.log("PUT event: ", event, new Date(), now < new Date(event.time.start).getTime());
 
                 // start the event socket.io namespace (or atatch to existing)
                 var nsp = io.of("/events/"+req.params.eventId);

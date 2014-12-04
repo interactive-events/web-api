@@ -109,6 +109,7 @@ module.exports = function(server) {
 											console.log("PUSH!", err, results);
 										});
 									} else {
+										message = "Not pushing since no of the currentParticipants have a gcmToken";
 										console.log("Not pushing since no of the currentParticipants have a gcmToken");
 									}
 								});
