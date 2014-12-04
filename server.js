@@ -6,6 +6,7 @@ function startServer(port) {
     var push = require('./push');
     var crypto = require('crypto');
     var bcrypt = require('bcrypt');
+    exports.webAppBaseUrl = "http://interactive-events-web-app.s3-website-eu-west-1.amazonaws.com";
     //var login = require('connect-ensure-login')
 
     require('./auth');
@@ -354,7 +355,7 @@ function startServer(port) {
             for(var i=0; events.activities.length > i; i++) {
                 events.activities[i].id = events.activities[i]._id;
                 // TODO: integrate this with event_modules/index.js for dynamicly adding more modules in future...
-                events.activities[i].url = "http://interactive-events-web-app.s3-website-eu-west-1.amazonaws.com/events/"+req.params.eventId+"/activities/"+events.activities[i]._id+"/vote"
+                events.activities[i].url = exports.webAppBaseUrl+"/events/"+req.params.eventId+"/activities/"+events.activities[i]._id+"/vote"
                 delete events.activities[i]._id;
                 delete events.activities[i].__v;
                 tmpJson.push(events.activities[i]);
@@ -417,6 +418,7 @@ function startServer(port) {
             if(!beacons) return res.send(404);
             console.log(beacons);
             beacons["id"] = beacons["_id"];
+                
             delete beacons["_id"];
             delete beacons["__v"];
             return res.send(beacons);

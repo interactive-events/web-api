@@ -5,6 +5,7 @@ var modules = {
 var db = require('../db');
 var authenticate = require('../server').authenticate;
 var push = require('../push');
+var webAppBaseUrl = require("../server").webAppBaseUrl;
 
 var dbModules = {
 	"546da619aebf240000d8a1fe": "poll"
@@ -54,6 +55,7 @@ module.exports = function(server) {
 		}).exec(function(err, event) {
 			if(err) return res.send(500, err)
 			if(!event) return res.send(404, "event not found");
+			if(event.admins.indexOf(req.user._id) < 0) return res.send(403, "You are not an admin of this event. ");
 			for(var i=0; event.activities.length > i; i++) { // (is only one activity..)
 				var activity = event.activities[i];
 				for(key in dbModules) {
@@ -101,7 +103,7 @@ module.exports = function(server) {
 				                			name: activity.name, 
 				                			module: dbModules[key],
 				                			activityId: activity._id,
-				                			url: "http://interactive-events-web-app.s3-website-eu-west-1.amazonaws.com/events/"+event._id+"/activities/"+activity._id+"/vote"
+				                			url: webAppBaseUrl+"/events/"+event._id+"/activities/"+activity._id+"/vote"
 				                		}, function(err, results) {
 				                			console.log("PUSH!", err, results);
 				                		});
