@@ -17,7 +17,7 @@ function isNamespaceActive(socketNameSpace) {
 
 module.exports = function(server) {
 
-	server.put('/events/:eventId/activities/:activityId/vote', authenticate, function(req, res, next) {
+	server.post('/events/:eventId/activities/:activityId/vote', authenticate, function(req, res, next) {
 
 		// check if user already voted
 		var alreadyVoted = null;
