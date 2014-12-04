@@ -125,8 +125,8 @@ function startServer(port) {
             var offset = req.params.offset || 0;
             var filter = {
                 $or: [
-                    {"invitedUsers": {$in: [req.user._id]}},
-                    {"admins": {$in: [req.user._id]}}
+                    {"invitedUsers": req.user._id},
+                    {"admins": req.user._id}
                 ]
             };
             if(beaconIds.length > 0) {
@@ -180,6 +180,7 @@ function startServer(port) {
         
     });
     server.post('/events', authenticate, function(req, res, next) {
+        // TODO: make sure only one event at a beacon at one time. 
         if(typeof req.params.title === 'undefined') {
             return res.send(400, "title undefined");
         }
