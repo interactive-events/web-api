@@ -123,7 +123,7 @@ function startServer(port) {
     server.get('/events', authenticate, function(req, res, next) {
 
         function getEvents(req, res, next, beaconIds) {
-            var limit = req.params.limit || 10;
+            var limit = req.params.limit || 20;
             var offset = req.params.offset || 0;
             var filter = {
                 $or: [
@@ -136,21 +136,25 @@ function startServer(port) {
             }
             console.log("filter: ", filter, beaconIds);
             db.Event.find(filter).skip(offset).limit(limit).populate('activities').lean().exec(function (err, events) {
-                if(err) return res.send(404);
                 var tmpJson = [];
-                for(var key in events) {
-                    //if(events[key].isPrivate === false || events[key].invitedUsers.indexOf(req.user._id)) {
-                    if(events[key].invitedUsers.indexOf(req.user._id)) {
-                        events[key]["id"] = events[key]["_id"];
-                        delete events[key]["_id"];
-                        delete events[key]["__v"];
-                        events[key].time.startTimestamp = new Date(events[key].time.start).getTime();
-                        events[key].time.endTimestamp = new Date(events[key].time.end).getTime();
-                        tmpJson.push({
-                            "event": events[key]
-                        });
+                if(err || !events) {
+                    events = [];
+                } else {
+                    for(var key in events) {
+                        //if(events[key].isPrivate === false || events[key].invitedUsers.indexOf(req.user._id)) {
+                        if(events[key].invitedUsers.indexOf(req.user._id)) {
+                            events[key]["id"] = events[key]["_id"];
+                            delete events[key]["_id"];
+                            delete events[key]["__v"];
+                            events[key].time.startTimestamp = new Date(events[key].time.start).getTime();
+                            events[key].time.endTimestamp = new Date(events[key].time.end).getTime();
+                            tmpJson.push({
+                                "event": events[key]
+                            });
+                        }
                     }
                 }
+                
                 var resJson = {
                     "events": tmpJson,
                     "_metadata": [{totalCount: events.length, limit: limit, offset: offset}]
@@ -219,10 +223,14 @@ function startServer(port) {
                 if(typeof req.params.activities[i].module === 'undefined') {
                     return res.send(400, "activity["+i+"].module undefined");
                 }
+                if(typeof req.params.activities[i].state === 'undefined') {
+                    return res.send(400, "activity["+i+"].state undefined");
+                }
                 var newActivity = new db.Activity({
                     name: req.params.activities[i].name,
                     customData: req.params.activities[i].customData,
-                    module: db.mongoose.Types.ObjectId(req.params.activities[i].module)
+                    module: db.mongoose.Types.ObjectId(req.params.activities[i].module),
+                    state: req.params.activities[i].state
                   });
                 newActivity.save(function(err) {
                     if(err) console.log(err);
@@ -347,7 +355,7 @@ function startServer(port) {
     });
 
     server.get('/events/:eventId/activities', authenticate, function(req, res, next) {
-        var limit = req.params.limit || 10;
+        var limit = req.params.limit || 20;
         var offset = req.params.offset || 0;
         db.Event.findById(req.params.eventId).populate('activities').lean().exec(function (err, events) {
             if(err) return res.send(404, "event.id="+req.params.eventId+" not found");
@@ -370,7 +378,7 @@ function startServer(port) {
 
 
     server.get('/beacons', authenticate, function(req, res, next) {
-        var limit = req.params.limit || 10;
+        var limit = req.params.limit || 20;
         var offset = req.params.offset || 0;
         db.Beacon.find().skip(offset).limit(limit).lean().exec(function (err, beacons) {
             if(err) return res.send(404);
@@ -391,7 +399,7 @@ function startServer(port) {
         });
     });
     server.get('/users', authenticate, function(req, res, next) {
-        var limit = req.params.limit || 10;
+        var limit = req.params.limit || 20;
         var offset = req.params.offset || 0;
         db.User.find().skip(offset).limit(limit).lean().exec(function (err, ret) {
             if(err) return res.send(404);

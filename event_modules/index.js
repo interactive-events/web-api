@@ -61,67 +61,81 @@ module.exports = function(server) {
 				for(key in dbModules) {
 					if(activity.module == key && modules.hasOwnProperty(dbModules[key])) {
 
+						var updates = 0;
 						if(req.params.hasOwnProperty("state")) {
 							activity.state = req.params.state;
-							activity.markModified("state");
+							updates++;
 						}
 						if(req.params.hasOwnProperty("name")) {
 							activity.name = req.params.name;
-							activity.markModified("name");
+							updates++;
 						}
 						if(req.params.hasOwnProperty("customData")) {
 							activity.customData = req.params.customData;
 							activity.markModified("customData");
+							updates++;
 						}
 						if(req.params.hasOwnProperty("module")) {
 							activity.module = req.params.module;
-							activity.markModified("module");
+							updates++;
 						}
 
-						activity.save();
+						// callback hell
+						var continuePut = function() {
+							// START ACTIVITY //
+							if(req.params.hasOwnProperty("state") && req.params.state === "start") {
+								// send push to mobiles
+								db.User.find({
+								    '_id': {
+								        $in: event.currentParticipants
+								    }
+								}).exec(function(err, users) {
+									var gcmTokens = [];
+									for(var j=0; j<users.length; j++) {
+										if(users[j].gcmToken && users[j].gcmToken.length > 0) {
+											gcmTokens.push(users[j].gcmToken);
+										}
+									}
 
+									if(gcmTokens.length > 0) {
+										push.android(gcmTokens, {
+											eventId: event._id,
+											eventTitle: event.title,
+											name: activity.name, 
+											module: dbModules[key],
+											activityId: activity._id,
+											url: webAppBaseUrl+"/events/"+event._id+"/activities/"+activity._id+"/vote"
+										}, function(err, results) {
+											console.log("PUSH!", err, results);
+										});
+									} else {
+										console.log("Not pushing since no of the currentParticipants have a gcmToken");
+									}
+								});
+								
+								// starts 
+								return modules[dbModules[key]].start(req, res, next, "/events/"+req.params.eventId, req.params.activityId);
+							}
 
-						// START ACTIVITY //
-						if(req.params.hasOwnProperty("state") && req.params.state === "start") {
-							// send push to mobiles
-				                db.User.find({
-				                    '_id': {
-				                        $in: event.currentParticipants
-				                    }
-				                }).exec(function(err, users) {
-				                	var gcmTokens = [];
-				                	for(var j=0; j<users.length; j++) {
-				                		if(users[j].gcmToken && users[j].gcmToken.length > 0) {
-				                			gcmTokens.push(users[j].gcmToken);
-				                		}
-				                	}
+							// END ACTIVITY //
+							else if(req.params.hasOwnProperty("state") && req.params.state === "finish") {
 
-				                	if(gcmTokens.length > 0) {
-				                		push.android(gcmTokens, {
-				                			eventId: event._id,
-				                			eventTitle: event.title,
-				                			name: activity.name, 
-				                			module: dbModules[key],
-				                			activityId: activity._id,
-				                			url: webAppBaseUrl+"/events/"+event._id+"/activities/"+activity._id+"/vote"
-				                		}, function(err, results) {
-				                			console.log("PUSH!", err, results);
-				                		});
-				                	} else {
-				                		console.log("Not pushing since no of the currentParticipants have a gcmToken");
-				                	}
-				                });
-							
-							// starts 
-							return modules[dbModules[key]].start(req, res, next, "/events/"+req.params.eventId, req.params.activityId);
+							}
+
+							return res.send(200);
+						};
+
+						
+        				if(updates > 0) {
+        					activity.save(function(err) {
+								if(err) return res.send(500, err);
+								continuePut();
+							});
+						} else {
+							continuePut();
 						}
-
-						// END ACTIVITY //
-						else if(req.params.hasOwnProperty("state") && req.params.state === "finish") {
-
-						}
-
-						return res.send(200);
+						return;
+						
 					}
 				}
 	    		return res.send(500, "no module found in activity "+req.params.activityId+" not found in");

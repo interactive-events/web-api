@@ -237,7 +237,7 @@ dummy.save(function(err) {
 // ACTIVITY //
 var ActivitySchema = Schema({
     name: { type: String, index: {required:  true} },
-    status: { type: Number },
+    state: { type: String },
     customData: Schema.Types.Mixed,
     //customData: String,
     module: {type: ObjectId, ref: "Module", index: {required: true}}
