@@ -59,10 +59,22 @@ module.exports = function(server) {
 				for(key in dbModules) {
 					if(activity.module == key && modules.hasOwnProperty(dbModules[key])) {
 
-						if(req.params.hasOwnProperty("state")) activity.state = req.params.state;
-						if(req.params.hasOwnProperty("name")) activity.name = req.params.name;
-						if(req.params.hasOwnProperty("customData")) activity.customData = req.params.customData;
-						if(req.params.hasOwnProperty("module")) activity.module = req.params.module;
+						if(req.params.hasOwnProperty("state")) {
+							activity.state = req.params.state;
+							activity.markModified("state");
+						}
+						if(req.params.hasOwnProperty("name")) {
+							activity.name = req.params.name;
+							activity.markModified("name");
+						}
+						if(req.params.hasOwnProperty("customData")) {
+							activity.customData = req.params.customData;
+							activity.markModified("customData");
+						}
+						if(req.params.hasOwnProperty("module")) {
+							activity.module = req.params.module;
+							activity.markModified("module");
+						}
 
 						activity.save();
 
@@ -106,6 +118,8 @@ module.exports = function(server) {
 						else if(req.params.hasOwnProperty("state") && req.params.state === "finish") {
 
 						}
+
+						return res.send(200);
 					}
 				}
 	    		return res.send(500, "no module found in activity "+req.params.activityId+" not found in");
