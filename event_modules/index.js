@@ -89,7 +89,7 @@ module.exports = function(server) {
 				                			name: activity.name, 
 				                			module: dbModules[key],
 				                			activityId: activity._id,
-				                			url: "http://interactive-events-web-app.s3-website-eu-west-1.amazonaws.com/events/"+event._id+"/activities/"+activity._id
+				                			url: "http://interactive-events-web-app.s3-website-eu-west-1.amazonaws.com/events/"+event._id+"/activities/"+activity._id+"/vote"
 				                		}, function(err, results) {
 				                			console.log("PUSH!", err, results);
 				                		});
