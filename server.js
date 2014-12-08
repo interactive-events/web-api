@@ -101,11 +101,8 @@ function startServer(port) {
                 event.currentParticipants.push(db.mongoose.Types.ObjectId(req.user._id));
                 event.save();
 
-                setTimeout(function() {
-                    console.log("emittings new new-participant!")
-                    var nsp = app.io.of("/events/"+req.params.eventId); // hopefully attach to an existing nsp
-                    nsp.emit("new-participant", { userId: req.user._id });
-                }, 0);
+                console.log("emittings new new-participant!");
+                io.of("/events/"+req.params.eventId).emit('new-participant', { userId: req.user._id });
 
                 return res.send(200);
             }
@@ -144,7 +141,7 @@ function startServer(port) {
             if(beaconIds.length > 0) {
                 filter.beacon = {$in: beaconIds};
             }
-            console.log("filter: ", filter, beaconIds);
+           // console.log("filter: ", filter, beaconIds);
             db.Event.find(filter).skip(offset).limit(limit).populate('activities').lean().exec(function (err, events) {
                 var tmpJson = [];
                 if(err || !events) {
@@ -317,7 +314,6 @@ function startServer(port) {
                     event.time.start = new Date();
                     console.log("new start: ", event, new Date());
                 }
-                console.log("PUT event: ", event, new Date(), now < new Date(event.time.start).getTime());
 
                 // start the event socket.io namespace (or atatch to existing)
                 var nsp = io.of("/events/"+req.params.eventId);
@@ -441,7 +437,6 @@ function startServer(port) {
         db.Activity.findById(req.params.activityId).lean().exec(function (err, beacons) {
             if(err) return res.send(404);
             if(!beacons) return res.send(404);
-            console.log(beacons);
             beacons["id"] = beacons["_id"];
                 
             delete beacons["_id"];
