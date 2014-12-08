@@ -122,11 +122,25 @@ function startServer(port) {
         });*/
     });
     server.get('/events/:eventId', authenticate, function(req, res, next) {
-        db.Event.findById(req.params.eventId).populate('activities').lean().exec(function (err, events) {
+        db.Event.findById(req.params.eventId).populate('activities').populate('invitedUsers').populate('currentParticipants').lean().exec(function (err, events) {
             if(err) return res.send(404);
             events["id"] = events["_id"];
             delete events["_id"];
             delete events["__v"];
+            for (var i=0; i<events.invitedUsers.length; i++) {
+                delete events.invitedUsers[i].password;
+                delete events.invitedUsers[i].created;
+                delete events.invitedUsers[i].__v;
+                delete events.invitedUsers[i].gcmToken;
+                delete events.invitedUsers[i]._id;
+            }
+            for (var i=0; i<events.currentParticipants.length; i++) {
+                delete events.currentParticipants[i].password;
+                delete events.currentParticipants[i].created;
+                delete events.currentParticipants[i].__v;
+                delete events.currentParticipants[i].gcmToken;
+                delete events.currentParticipants[i]._id;
+            }
             res.send(events);
         });
     });
