@@ -40,10 +40,14 @@ module.exports = function(server) {
 				}
 			});
 
-			// store the fact that the user has laid his/her vote in this poll!!!!
-			db.PollVoter.create({ activity: req.params.activityId, userId: req.user._id }, function (err, voter) {
-				if(err) return res.send(500, err);
-			});
+			if (req.user._id == '5485715becdbe8cb38da660b') {
+				console.log('VoteUser has voted - don´t save in pollVoters-collection');
+			} else {
+				// store the fact that the user has laid his/her vote in this poll!!!!
+				db.PollVoter.create({ activity: req.params.activityId, userId: req.user._id }, function (err, voter) {
+					if(err) return res.send(500, err);
+				});
+			}
 
 			var nsp = app.io.of("/events/"+req.params.eventId);
 			nsp.to(req.params.activityId).emit('vote', { answerId: req.params.answerId});
