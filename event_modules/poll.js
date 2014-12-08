@@ -49,8 +49,8 @@ module.exports = function(server) {
 				});
 			}
 
-			var nsp = app.io.of("/events/"+req.params.eventId);
-			nsp.to(req.params.activityId).emit('vote', { answerId: req.params.answerId});
+			app.io.of("/events/"+req.params.eventId+"/activities/"+req.params.activityId).emit('vote', { answerId: req.params.answerId});
+
 			return res.send(200);
 
 		});
@@ -105,16 +105,21 @@ module.exports.start = function(req, res, next, socketNameSpace, activityId) {
 	if(isNamespaceActive(socketNameSpace) == true) {
 		return res.send(410); // 410: Gone
 	}
+	console.log("starting room at namespace ", socketNameSpace);
 
-	var nsp = app.io.of(socketNameSpace); // hopefully attach to an existing nsp
+    var nsp = app.io.of("/events/"+req.params.eventId+"/activities/"+activityId);
 
-	nsp.on('joinActivity'+activityId, function(socket) {
-		socket.join(activityId);
+    nsp.on('connection', function(socket) {
+		socket.emit("joined");
 	});
+	nsp.on('disconnect', function(socket) {
+		socket.emit("left");
+	});
+	setInterval(function() {
+		nsp.emit("DERP");
+	}, 1000);
 
 	// TODO: periodic read from db and push that untill all have voted. 
-
-	// hardcoded example for now:
 	
 /*
 	setTimeout(function() {
@@ -142,3 +147,4 @@ module.exports.start = function(req, res, next, socketNameSpace, activityId) {
 	*/
 	return res.send(201);
 };
+

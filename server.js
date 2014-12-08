@@ -84,8 +84,8 @@ function startServer(port) {
 
 
     /* Module custom routes */
-    require('./event_modules')(server);
-    
+    var modules = require('./event_modules');
+    modules(server);
 
     /* Database */
 
@@ -318,14 +318,15 @@ function startServer(port) {
                 // start the event socket.io namespace (or atatch to existing)
                 var nsp = io.of("/events/"+req.params.eventId);
                 nsp.on('connection', function(socket) {
-                    //nsp.emit('new-participant', { user: req.user._id });
+                    
                 });
                 nsp.on('disconnect', function(socket) {
-                    //nsp.emit('left-participant', { user: req.user._id } );
+
                 });
 
 
                 // end the namespace
+                /*
                 var context = {
                     eventId: req.params.eventId,
                     nsp: nsp,
@@ -358,7 +359,7 @@ function startServer(port) {
                     });
                 }
                 setTimeout(checkStillRunning, ((new Date(event.time.end).getTime())-now)*1000);
-
+                */
             }
              
 
