@@ -154,7 +154,34 @@ module.exports = function(server) {
 		
 	});
 }
+/*
+module.exports.addOnSocketIo = function(socket, eventId) {
 
-exports.poll = modules.poll;
+	socket.on("joinActivity", function(data) {
+		if(data.activityId) socket.emit("data.activityId missing");
+		db.Event.findById(req.params.eventId).populate({
+			path: 'activities', 
+			match: { _id: req.params.activityId }, 
+			model: 'Activity'
+		}).lean().exec(function(err, event) {
+			if(err) return socket.emit("db error ", err)
+			if(!event) return socket.emit("event not found");
+			for(var i=0; event.activities.length > i; i++) { // (is only one activity..)
+				var activity = event.activities[i];
+				for(key in dbModules) {
+					if(activity.module == key && modules.hasOwnProperty(dbModules[key])) {
+						console.log("someone joined!");
+						socket.join(activityId);
+						socket.emit("joined "+activityId);
+						socket.broadcast.to(activityId).send('someone joined room');
+						return;
+					}
+				}
+			}
+		});
+	});
+};
+*/
+module.exports.poll = modules.poll;
 
 
