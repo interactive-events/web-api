@@ -93,10 +93,20 @@ function startServer(port) {
         db.Event.findById(req.params.eventId, function(err, event) {
             if(err) return res.send(500, err);
             if(!event) return res.send(404, "event ("+req.params.eventId+") not found");
+            
+            if(event.currentParticipants.indexOf(req.user._id) < 0) return res.send(403, "You are alredy here");
+
             var now = new Date().getTime();
             if(new Date(event.time.start).getTime() < now && now < new Date(event.time.end).getTime()) {
                 event.currentParticipants.push(db.mongoose.Types.ObjectId(req.user._id));
                 event.save();
+
+                setTimeout(function() {
+                    console.log("emittings new new-participant!")
+                    var nsp = app.io.of("/events/"+req.params.eventId); // hopefully attach to an existing nsp
+                    nsp.emit("new-participant", { userId: req.user._id });
+                }, 0);
+
                 return res.send(200);
             }
             return res.send(403, "event not started");
@@ -164,7 +174,7 @@ function startServer(port) {
         }
 
         var beaconFilter = {};
-        if(req.params.beaconsUUID) beaconFilter.uuid = req.params.beaconsUUID;
+        if(req.params.beaconsUUID) beaconFilter.uuid = req.params.beaconsUUID.toUpperCase();
         if(req.params.beaconsMinor) beaconFilter.minor = req.params.beaconsMinor;
         if(req.params.beaconsMajor) beaconFilter.major = req.params.beaconsMajor;
         if(Object.keys(beaconFilter).length > 0) {
