@@ -94,7 +94,7 @@ function startServer(port) {
             if(err) return res.send(500, err);
             if(!event) return res.send(404, "event ("+req.params.eventId+") not found");
             
-            if(event.currentParticipants.indexOf(req.user._id) < 0) return res.send(403, "You are alredy here");
+            if(event.currentParticipants.indexOf(req.user._id) >= 0) return res.send(403, "You are alredy here");
 
             var now = new Date().getTime();
             if(new Date(event.time.start).getTime() < now && now < new Date(event.time.end).getTime()) {
@@ -322,11 +322,12 @@ function startServer(port) {
                 // start the event socket.io namespace (or atatch to existing)
                 var nsp = io.of("/events/"+req.params.eventId);
                 nsp.on('connection', function(socket) {
-                    nsp.emit('new-participant', { error: "Not implemented (but someone joined)"});
+                    //nsp.emit('new-participant', { user: req.user._id });
                 });
                 nsp.on('disconnect', function(socket) {
-                    nsp.emit('left-participant', { error: "Not implemented (but someone left)"});
+                    //nsp.emit('left-participant', { user: req.user._id } );
                 });
+
 
                 // end the namespace
                 var context = {
