@@ -147,6 +147,17 @@ function startServer(port) {
                 if(err || !events) {
                     events = [];
                 } else {
+                    var now = new Date();
+                    if(req.params.isOngoing) {
+                        for(var key in events) {
+                            if(new Date(events[key].time.start) <= now && now <= new Date(events[key].time.end)) {
+
+                            } else {
+                                console.log("not ongoing: ", events[key].time.start, now, events[key].time.end)
+                                delete events[key];
+                            }
+                        }
+                    }
                     for(var key in events) {
                         //if(events[key].isPrivate === false || events[key].invitedUsers.indexOf(req.user._id)) {
                         if(events[key].invitedUsers.indexOf(req.user._id)) {
@@ -155,6 +166,7 @@ function startServer(port) {
                             delete events[key]["__v"];
                             events[key].time.startTimestamp = new Date(events[key].time.start).getTime();
                             events[key].time.endTimestamp = new Date(events[key].time.end).getTime();
+
                             tmpJson.push({
                                 "event": events[key]
                             });
@@ -164,7 +176,7 @@ function startServer(port) {
                 
                 var resJson = {
                     "events": tmpJson,
-                    "_metadata": [{totalCount: events.length, limit: limit, offset: offset}]
+                    "_metadata": [{totalCount: tmpJson.length, limit: limit, offset: offset}]
                 }
                 res.send(resJson);
             }); 
