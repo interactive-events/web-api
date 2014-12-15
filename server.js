@@ -156,7 +156,8 @@ function startServer(port) {
                 filter.beacon = {$in: beaconIds};
             }
            // console.log("filter: ", filter, beaconIds);
-            db.Event.find(filter).skip(offset).limit(limit).populate('activities').lean().exec(function (err, events) {
+           var sort = { 'time.start': 1 };
+            db.Event.find(filter).sort(sort).skip(offset).limit(limit).populate('activities').lean().exec(function (err, events) {
                 var tmpJson = [];
                 if(err || !events) {
                     events = [];
